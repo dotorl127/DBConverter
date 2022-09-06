@@ -1,0 +1,21 @@
+# https://github.com/bostondiditeam/kitti/blob/master/resources/devkit_object/readme.txt
+kitti:
+  sensor_name_list:
+    camera: ['image_2']
+    lidar: ['velodyne']
+  class_name_list: ['Car', 'Van', 'Truck', 'Pedestrian', 'Person_sitting', 'Cyclist', 'Tram', 'Misc', 'DontCare']
+
+# https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/label.proto
+waymo:
+  sensor_name_list:
+    camera: ['FRONT', 'FRONT_RIGHT', 'FRONT_LEFT', 'SIDE_RIGHT', 'SIDE_LEFT']
+    lidar: ['TOP']
+  class_name_list: ['UNKNOWN', 'VEHICLE', 'PEDESTRIAN', 'SIGN', 'CYCLIST']
+
+# https://www.nuscenes.org/nuscenes#data-format
+nuscenes:
+  sensor_name_list:
+    camera: ['CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT', 'CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT']
+    lidar: ['LIDAR_TOP']
+    radar: ['RADAR_BACK_LEFT', 'RADAR_BACK_RIGHT', 'RADAR_FRONT', 'RADAR_FRONT_LEFT', 'RADAR_FRONT_RIGHT']
+  class_name_list: ['human.pedestrian.adult', 'vehicle.car', 'vehicle.truck', 'vehicle.bus.rigid', 'vehicle.bicycle']
