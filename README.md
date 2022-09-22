@@ -23,12 +23,25 @@ KetiDBconverter
 │  ├─ util.py
 │  └─ visulize.py
 ├─ db_infos.yaml
-├─ damo.py
+├─ demo.py
 ├─ KetiDBconverter.py
 ├─ README.md
 └─ requirements.txt
 ```
-- {dataset name}_converter : 
+
+## Description directory hierarchy
+- **converter**
+  - {dataset name}_converter : for convert from {dataset name} to another datasets
+- **dictionary**
+  - class_dictionary.py : for convert class names each dataset
+  - rotation_dictionary.py : for align sensor, label rotation among datasets
+- **utils**
+  - label.py : label class
+  - util.py : parse each dataset label, matrix size validation
+  - visulize.py : plot 2D BBOX on image or 3D BBOX on 3D space with point cloud
+- **db_infos.yaml** : information about each dataset(dataset name, sensor list, class name list)
+- **deme.py** : visualization dataset
+- **requirements.txt** : required pip package list
 
 ## How to use
 ### Convert
