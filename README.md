@@ -66,13 +66,13 @@ root
 ### Label format
 type, truncated, occluded, alpha, bbox(left, top, right, bottom), dimensions(height, width, lengh), localtion(x, y, z), rotation_y
 ### Calibration format
-P{n} : projection matrix for each {n} camera
-R0_rect : rectifying matrix for P2 camera
-Tr_velo_to_cam : RT matrix for roof LiDAR to camera
-Tr_imu_to_cam : RT matrix for imu(or base_link) to camera
+- P{n} : projection matrix for each {n} camera
+- R0_rect : rectifying matrix for P2 camera
+- Tr_velo_to_cam : RT matrix for roof LiDAR to camera
+- Tr_imu_to_cam : RT matrix for imu(or base_link) to camera
 ### Coordinate system
-Camera : x(right), y(bottom), z(forward)<br />
-LiDAR : x(forward), y(left), z(up)
+- Camera : x(right), y(bottom), z(forward)
+- LiDAR : x(forward), y(left), z(up)
 
 ## WAYMO
 ### Directory hierarchy
@@ -84,18 +84,18 @@ root
 check [proto file](https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/label.proto)
 bbox(center x, y, width, height), 0, 0, type, -1, location(x, y, z), dimensions(width, length, height), heading
 ### Calibration format
-{camera_name}_intrinsic : {camera_name}'s intrinsic matrix
-{camera_name}_extrinsic : {camera_name}'s RT matrix for camera to base_link
-{camera_name}_width : image width size
-{camera_name}_height : image height size
-{camera_name}_rolling_shutter_direction : check [proto file](https://github.com/waymo-research/waymo-open-dataset/blob/17f070076dad149766357b31e25d27cf8b5da6ac/waymo_open_dataset/dataset.proto#L109)
-{LiDAR_name}_beam_inclinations : each channel's vertical angle of {LiDAR_name}
-{LiDAR_name}_beam_inclination_min : min vertical fov of {LiDAR_name}
-{LiDAR_name}_beam_inclination_max : max vertical fov of {LiDAR_name}
-{LiDAR_name}_extrinsic : {LiDAR_name}'s RT matrix for LiDAR to base_link
+- {camera_name}_intrinsic : {camera_name}'s intrinsic matrix
+- {camera_name}_extrinsic : {camera_name}'s RT matrix for camera to base_link
+- {camera_name}_width : image width size
+- {camera_name}_height : image height size
+- {camera_name}_rolling_shutter_direction : check [proto file](https://github.com/waymo-research/waymo-open-dataset/blob/17f070076dad149766357b31e25d27cf8b5da6ac/waymo_open_dataset/dataset.proto#L109)
+- {LiDAR_name}_beam_inclinations : each channel's vertical angle of {LiDAR_name}
+- {LiDAR_name}_beam_inclination_min : min vertical fov of {LiDAR_name}
+- {LiDAR_name}_beam_inclination_max : max vertical fov of {LiDAR_name}
+- {LiDAR_name}_extrinsic : {LiDAR_name}'s RT matrix for LiDAR to base_link
 ### Coordinate system
-Camera : x(forward), y(left), z(up)<br />
-LiDAR : x(forward), y(left), z(up)
+- Camera : x(forward), y(left), z(up)
+- LiDAR : x(forward), y(left), z(up)
 
 ## Nuscenes
 ### Directory hierarchy
@@ -139,11 +139,11 @@ root
 check sample_annotation json file<br />
 token, sample_token, instance_token, attribute_tokens, visibility_token, translation(center x, y, z), size(width, length, height), rotation(quaternion), num_lidar_pts, num_radar_pts, next, prev
 ### Calibration format
-{camera_name}_translation : {camera_name}'s location to base_link
-{camera_name}_rotation : {camera_name}'s rotation to base_link
-{camera_name}_intrinsic : {camera_name}'s intrinsic matrix
-{LiDAR_name}_translation : {LiDAR_name}'s location to base_link
-{LiDAR_name}_rotation : {LiDAR_name}'s rotation to base_link
+- {camera_name}_translation : {camera_name}'s location to base_link
+- {camera_name}_rotation : {camera_name}'s rotation to base_link
+- {camera_name}_intrinsic : {camera_name}'s intrinsic matrix
+- {LiDAR_name}_translation : {LiDAR_name}'s location to base_link
+- {LiDAR_name}_rotation : {LiDAR_name}'s rotation to base_link
 ### Coordinate system
-Camera : x(right), y(down), z(forward)<br />
-LiDAR : x(right), y(forward), z(up)
+- Camera : x(right), y(down), z(forward)
+- LiDAR : x(right), y(forward), z(up)
