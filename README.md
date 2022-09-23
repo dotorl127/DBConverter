@@ -81,7 +81,7 @@ root
 └─ *.tfrecord
 ```
 ### Label format
-check [proto file](https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/label.proto)
+check [proto file](https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/label.proto)<br />
 bbox(center x, y, width, height), 0, 0, type, -1, location(x, y, z), dimensions(width, length, height), heading
 ### Calibration format
 - {camera_name}_intrinsic : {camera_name}'s intrinsic matrix
