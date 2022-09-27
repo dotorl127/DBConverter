@@ -74,7 +74,7 @@ type, truncated, occluded, alpha, bbox(left, top, right, bottom), dimensions(hei
 - Camera : x(right), y(bottom), z(forward)
 - LiDAR : x(forward), y(left), z(up)
 
-## WAYMO
+## Waymo
 ### Directory hierarchy
 ```
 root
