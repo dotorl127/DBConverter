@@ -1,5 +1,5 @@
 # KetiDBconverter
-for convert open source datasets KITTI, NuScenes, Waymo
+for convert open source datasets KITTI, Waymo, NuScenes
 
 ## Related work
 - [x] convert coordinates system among KITTI, Waymo, Nuscenes
