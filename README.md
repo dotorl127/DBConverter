@@ -64,7 +64,9 @@ root
 └─ velodyne
 ```
 ### Label format
+```
 type, truncated, occluded, alpha, bbox(left, top, right, bottom), dimensions(height, width, lengh), localtion(x, y, z), rotation_y
+```
 ### Calibration format
 - P{n} : projection matrix for each {n} camera
 - R0_rect : rectifying matrix for P2 camera
@@ -82,7 +84,9 @@ root
 ```
 ### Label format
 check [proto file](https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/label.proto)<br />
+```
 bbox(center x, y, width, height), speed(x, y), type, id, location(x, y, z), dimensions(width, length, height), heading, num_lidar_points_in_box
+```
 ### Calibration format
 - {camera_name}_intrinsic : {camera_name}'s intrinsic matrix
 - {camera_name}_extrinsic : {camera_name}'s RT matrix for camera to base_link
@@ -137,7 +141,9 @@ root
 ```
 ### Label format
 check sample_annotation json file<br />
+```
 type, translation(center x, y, z), size(width, height, length), rotation(quaternion), num_lidar_pts, num_radar_pts, bbox(left, top, right, bottom)
+```
 ### Calibration format
 - {camera_name}_translation : {camera_name}'s location to base_link
 - {camera_name}_rotation : {camera_name}'s rotation to base_link
