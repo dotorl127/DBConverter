@@ -37,7 +37,7 @@ KetiDBconverter
   - rotation_dictionary.py : for align sensor, label rotation among datasets
 - **utils**
   - label.py : label class
-  - util.py : parse each dataset label, matrix size validation
+  - util.py : parse each dataset label, check validation matrix shape
   - visulize.py : plot 2D BBOX on image or 3D BBOX on 3D space with point cloud
 - **db_infos.yaml** : information about each dataset(dataset name, sensor list, class name list)
 - **deme.py** : visualization dataset
@@ -82,7 +82,7 @@ root
 ```
 ### Label format
 check [proto file](https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/label.proto)<br />
-bbox(center x, y, width, height), 0, 0, type, -1, location(x, y, z), dimensions(width, length, height), heading
+bbox(center x, y, width, height), speed(x, y), type, id, location(x, y, z), dimensions(width, length, height), heading, num_lidar_points_in_box
 ### Calibration format
 - {camera_name}_intrinsic : {camera_name}'s intrinsic matrix
 - {camera_name}_extrinsic : {camera_name}'s RT matrix for camera to base_link
@@ -137,7 +137,7 @@ root
 ```
 ### Label format
 check sample_annotation json file<br />
-token, sample_token, instance_token, attribute_tokens, visibility_token, translation(center x, y, z), size(width, length, height), rotation(quaternion), num_lidar_pts, num_radar_pts, next, prev
+type, translation(center x, y, z), size(width, height, length), rotation(quaternion), num_lidar_pts, num_radar_pts, bbox(left, top, right, bottom)
 ### Calibration format
 - {camera_name}_translation : {camera_name}'s location to base_link
 - {camera_name}_rotation : {camera_name}'s rotation to base_link
