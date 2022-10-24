@@ -21,7 +21,6 @@ class Udacity:
         self.src_dir = src_dir
         self.dst_dir = dst_dir
         self.dst_db_type = dst_db_type
-        self.calib_dict = {}
         self.image = None
         self.labels = []
         print(f'Set Destination Dataset Type {self.dst_db_type}')
