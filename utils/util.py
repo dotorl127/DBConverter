@@ -75,8 +75,6 @@ def parse_label(dataset_type: str, label: list):
                     float(label[11]), float(label[13]), float(label[12]), float(label[14])]
         label_cls = label[6]
     elif dataset_type == 'nuscenes':
-        # TODO: projection into each camera for get 2d bbox
-        # something()
         label_2d = None
         rot = Rotation.from_quat(list(map(float, label[7:11])))
         rot_z = rot.as_euler('xyz')[-1]
