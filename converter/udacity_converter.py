@@ -6,7 +6,7 @@ from tqdm import tqdm
 from utils import label
 
 
-class udacity:
+class Udacity:
     def __init__(self,
                  src_dir: str = None,
                  dst_dir: str = None,
