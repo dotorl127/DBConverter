@@ -3,8 +3,6 @@ import numpy as np
 from shutil import copyfile
 from tqdm import tqdm
 
-from utils import label
-
 
 class Udacity:
     def __init__(self,
