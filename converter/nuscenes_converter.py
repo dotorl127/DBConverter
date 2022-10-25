@@ -323,8 +323,6 @@ class nuscenes:
                                 output = f'{x1}, {y1}, {x2}, {y2}, 0, 0, {detection_name}, -1, ' \
                                          f'{box_lidar_nusc.center[0]}, {box_lidar_nusc.center[1]}, {box_lidar_nusc.center[2]}, ' \
                                          f'{box_lidar_nusc.wlh[0]}, {box_lidar_nusc.wlh[1]}, {box_lidar_nusc.wlh[2]}, {yaw}'
-                            elif self.dst_db_type == 'udacity':
-                                output = f'{x1}, {y1}, {x2}, {y2}, {detection_name}'
 
                         # Write to disk.
                         label_file.write(output + '\n')
