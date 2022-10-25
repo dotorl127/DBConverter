@@ -41,7 +41,7 @@ KetiDBconverter
   - label.py : label class
   - util.py : parse each dataset label, check validation matrix shape
   - visulize.py : plot 2D BBOX on image or 3D BBOX on 3D space with point cloud
-- **db_infos.yaml** : information about each dataset(dataset name, sensor list, class name list)
+- **db_infos.yaml** : information about each dataset(dataset name, sensor list, class name list), Udacity Dataset hasn't included
 - **deme.py** : visualization dataset
 - **requirements.txt** : required pip package list
 
