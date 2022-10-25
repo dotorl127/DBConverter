@@ -292,8 +292,7 @@ class waymo:
                     line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
                            f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
                            f'0, 0, {int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}\n'
-                elif self.dst_db_type == 'udacity':
-                    line = f'{int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}, {class_name}\n'
+
 
             if name != 'FRONT':
                 # store the label
