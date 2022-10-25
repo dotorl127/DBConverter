@@ -57,32 +57,37 @@ class KetiDBconverter(object):
             self.tgt_db_type = db_type.lower()
 
     def create_dir(self):
-        for dir_name in self.ret_dir:
-            path = self.tgt_path + dir_name
+        if self.src_db_type == 'udacity':
+            path = self.tgt_path + 'camera/front_camera'
             if not os.path.isdir(path):
                 os.makedirs(path)
-        for cam_dir_name in self.camera_dir_lst:
-            path = self.tgt_path + 'camera/' + cam_dir_name
-            if not os.path.isdir(path):
-                os.makedirs(path)
-            path = self.tgt_path + 'label/' + cam_dir_name
-            if not os.path.isdir(path):
-                os.makedirs(path)
-            path = self.tgt_path + 'calib/' + cam_dir_name
-            if not os.path.isdir(path):
-                os.makedirs(path)
-        for lid_dir_name in self.lidar_dir_lst:
-            path = self.tgt_path + 'lidar/' + lid_dir_name
-            if not os.path.isdir(path):
-                os.makedirs(path)
-        if self.radar_dir_lst is not None:
-            for radar_dir_name in self.radar_dir_lst:
-                path = self.tgt_path + 'calib/' + radar_dir_name
+        else:
+            for dir_name in self.ret_dir:
+                path = self.tgt_path + dir_name
                 if not os.path.isdir(path):
                     os.makedirs(path)
-                path = self.tgt_path + 'radar/' + radar_dir_name
+            for cam_dir_name in self.camera_dir_lst:
+                path = self.tgt_path + 'camera/' + cam_dir_name
                 if not os.path.isdir(path):
                     os.makedirs(path)
+                path = self.tgt_path + 'label/' + cam_dir_name
+                if not os.path.isdir(path):
+                    os.makedirs(path)
+                path = self.tgt_path + 'calib/' + cam_dir_name
+                if not os.path.isdir(path):
+                    os.makedirs(path)
+            for lid_dir_name in self.lidar_dir_lst:
+                path = self.tgt_path + 'lidar/' + lid_dir_name
+                if not os.path.isdir(path):
+                    os.makedirs(path)
+            if self.radar_dir_lst is not None:
+                for radar_dir_name in self.radar_dir_lst:
+                    path = self.tgt_path + 'calib/' + radar_dir_name
+                    if not os.path.isdir(path):
+                        os.makedirs(path)
+                    path = self.tgt_path + 'radar/' + radar_dir_name
+                    if not os.path.isdir(path):
+                        os.makedirs(path)
 
     def load_src_dataset(self):
         module = None

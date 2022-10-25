@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--vis_type', type=str, default='3d', help='Type of visualization[2d, 3d]')
     args = parser.parse_args()
 
-    assert args.dataset_type in ['kitti', 'waymo', 'nuscenes'], \
+    assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'udacity'], \
         f'Invalid Dataset Type Please Check {args.dataset_type}'
 
     root_dir = args.root_dir
@@ -29,6 +29,8 @@ if __name__ == '__main__':
     camera_names = sorted(os.listdir(f'{root_dir}camera/'))
 
     if args.vis_type == '3d':
+        assert args.dataset_type in ['kitti', 'waymo', 'nuscenes'], f'Udacity dataset does not support 3D visualize'
+
         points_dir_name = None
         lid_lst = os.listdir(f'{root_dir}lidar/')
         for lid_name in lid_lst:
@@ -43,7 +45,7 @@ if __name__ == '__main__':
             labels_3d = None
             labels_cls = None
             for camera_name in camera_names:
-                if camera_name in ['image_2', 'FRONT', 'CAM_FRONT']:
+                if camera_name in ['image_2', 'FRONT', 'CAM_FRONT', 'front_camera']:
                     points = np.fromfile(f'{root_dir}lidar/{points_dir_name}/{filename}.bin',
                                          dtype=np.float32).reshape(-1, 4)
                     with open(f'{root_dir}label/{camera_name}/{filename}.txt', 'r') as f:
