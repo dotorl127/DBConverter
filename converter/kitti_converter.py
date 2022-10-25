@@ -57,13 +57,15 @@ class kitti:
                    f'{label.label_3d.locs[0]}, {label.label_3d.locs[1]}, {label.label_3d.locs[2]}, ' \
                    f'{label.label_3d.dims[0]}, {label.label_3d.dims[1]}, {label.label_3d.dims[2]}, ' \
                    f'{label.label_3d.rot}, 0'
-        else:
+        elif dst_db_type == 'nuscenes':
             rot = Rotation.from_euler('xyz', [0, 0, label.label_3d.rot])
             rot_quat = rot.as_quat()
             return f'{type}, {label.label_3d.locs[0]}, {label.label_3d.locs[1]}, {label.label_3d.locs[2]}, ' \
                    f'{label.label_3d.dims[0]}, {label.label_3d.dims[1]}, {label.label_3d.dims[2]}, ' \
                    f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, {-1}, {-1}, ' \
                    f'{label.label_2d.x1}, {label.label_2d.y1}, {label.label_2d.x2}, {label.label_2d.y2}'
+        elif dst_db_type == 'udacity':
+            return f'{label.label_2d.x1}, {label.label_2d.y1}, {label.label_2d.x2}, {label.label_2d.y2}, {type}'
 
     def convert(self):
         print(f'Convert Kitti to {self.dst_db_type} Dataset.')

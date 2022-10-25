@@ -5,6 +5,7 @@ import yaml
 from converter import kitti_converter
 from converter import waymo_converter
 from converter import nuscenes_converter
+from converter import udacity_converter
 
 
 class KetiDBconverter(object):
@@ -51,7 +52,7 @@ class KetiDBconverter(object):
         self.load_src_dataset()
 
     def check_db_type(self, db_type: str):
-        check_lst = ['kitti', 'waymo', 'nuscenes']
+        check_lst = ['kitti', 'waymo', 'nuscenes', 'udacity']
         if db_type.lower() in check_lst:
             self.tgt_db_type = db_type.lower()
 
@@ -91,6 +92,8 @@ class KetiDBconverter(object):
             module = waymo_converter
         elif self.src_db_type == 'nuscenes':
             module = nuscenes_converter
+        elif self.src_db_type == 'udacity':
+            module = udacity_converter
         self.db = getattr(module, self.src_db_type)(self.src_path, self.tgt_path, self.tgt_db_type)
 
     def convert(self):

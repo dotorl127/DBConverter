@@ -4,7 +4,7 @@ from tqdm import tqdm
 import csv
 
 
-class Udacity:
+class udacity:
     def __init__(self,
                  src_dir: str = None,
                  dst_dir: str = None,
@@ -28,23 +28,23 @@ class Udacity:
         filenames = [filename.rstrip('.jpg') for filename in filenames]
         label_dict = {}
 
-        with open('data.csv', 'r', encoding='utf-8') as f:
+        with open(label_path, 'r', encoding='utf-8') as f:
             rdr = csv.reader(f)
             for line in rdr:
-                if line[4] in label_dict:
-                    label_dict[line[4]].append([*line[:4], line[5]])
+                file = line[4].rstrip('.jpg')
+                if file in label_dict:
+                    label_dict[file].append([*line[:4], line[5]])
                 else:
-                    label_dict[line[4]] = [*line[:4], line[5]]
+                    label_dict[file] = [[*line[:4], line[5]]]
 
         for frame, file in enumerate(tqdm(filenames)):
-            copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/image_2/{frame:06d}.jpg')
+            copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}front_camera/{frame:06d}.jpg')
 
             labels = label_dict[file]
 
             for label in labels:
-                x1, y1 = label[:2]
-                x2, y2 = label[2:4]
-                type = label[-1]
+                x1, y1, x2, y2 = label[:4]
+                type = label[4]
                 line = f'{x1}, {y1}, {x2}, {y2}, {type}\n'
 
                 if self.dst_db_type == 'waymo':
