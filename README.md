@@ -2,7 +2,7 @@
 for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 
 ## Related work
-- [x] convert coordinates system among KITTI, Waymo, Nuscenes
+- [x] convert coordinates system among KITTI, Waymo, Nuscenes and Udacity
 - [x] extract sensor data in tfrecord file
 - [x] convert label format, class names for each dataset
 - [x] visualization point cloud with 3D label
@@ -36,6 +36,7 @@ KetiDBconverter
 - **dictionary**
   - class_dictionary.py : for convert class names each dataset
   - rotation_dictionary.py : for align sensor, label rotation among datasets
+  - Udacity Dataset hasn't included
 - **utils**
   - label.py : label class
   - util.py : parse each dataset label, check validation matrix shape
