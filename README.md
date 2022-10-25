@@ -161,7 +161,6 @@ type, translation(center x, y, z), size(width, height, length), rotation(quatern
 ```
 root
 ├─ object-detection-crowdai
-│  ├─ ...
 │  ├─ {Frame}.jpg
 │  ├─ ...
 └─ └─ labels.csv
