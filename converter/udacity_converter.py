@@ -36,23 +36,4 @@ class Udacity:
                 else:
                     label_dict[line[4]] = [*line[:4], line[5]]
 
-        for frame, file in enumerate(tqdm(filenames)):
-            copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/image_2/{frame:06d}.jpg')
 
-            labels = label_dict[file]
-
-            for label in labels:
-                x1, y1 = label[:2]
-                x2, y2 = label[2:4]
-                type = label[-1]
-                line = f'{x1}, {y1}, {x2}, {y2}, {type}\n'
-
-                if self.dst_db_type == 'waymo':
-                    width = x2 - x1
-                    height = y2 - y1
-                    cx = x1 + (width // 2)
-                    cy = y1 + (height // 2)
-                    line = f'{cx}, {cy}, {width}, {height}, {type}\n'
-
-                with open(f'{self.dst_dir}label/{frame:06d}.txt', 'w') as f:
-                    f.write(line)
