@@ -1,5 +1,5 @@
 # KetiDBconverter
-for convert open source datasets KITTI, Waymo, NuScenes
+for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 
 ## Related work
 - [x] convert coordinates system among KITTI, Waymo, Nuscenes
@@ -14,7 +14,8 @@ KetiDBconverter
 ├─ converter
 │  ├─ kitti_converter.py
 │  ├─ nuscenes_converter.py
-│  └─ waymo_converter.py
+│  ├─ waymo_converter.py
+│  └─ udacity_converter.py
 ├─ dictionary
 │  ├─ class_dictionary.py
 │  └─ rotation_dictionary.py
@@ -153,3 +154,17 @@ type, translation(center x, y, z), size(width, height, length), rotation(quatern
 ### Coordinate system
 - Camera : x(right), y(down), z(forward)
 - LiDAR : x(right), y(forward), z(up)
+
+## Udacity
+
+### Directory hierarchy
+```
+root
+├─ object-detection-crowdai
+│  ├─ {Frame}.jpg
+└─ └─ labels.csv
+```
+### Label format
+```
+xmin, ymin, xmax, ymax, Frame, Type, Preview URL
+```
