@@ -38,7 +38,7 @@ class udacity:
                     label_dict[file] = [[*line[:4], line[5]]]
 
         for frame, file in enumerate(tqdm(filenames)):
-            copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/front_camera/{frame:06d}.jpg')
+            copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/{frame:06d}.jpg')
 
             labels = label_dict[file]
 
@@ -62,5 +62,5 @@ class udacity:
                     line = f'{type}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {-1}, {-1}, ' \
                            f'{x1}, {y1}, {x2}, {y2}'
 
-                with open(f'{self.dst_dir}label/front_camera/{frame:06d}.txt', 'w') as f:
+                with open(f'{self.dst_dir}label/{frame:06d}.txt', 'w') as f:
                     f.write(line)

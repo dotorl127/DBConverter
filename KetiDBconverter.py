@@ -58,7 +58,10 @@ class KetiDBconverter(object):
 
     def create_dir(self):
         if self.src_db_type == 'udacity':
-            path = self.tgt_path + 'camera/front_camera'
+            path = self.tgt_path + 'camera'
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            path = self.tgt_path + 'label'
             if not os.path.isdir(path):
                 os.makedirs(path)
         else:
