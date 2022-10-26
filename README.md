@@ -36,7 +36,7 @@ KetiDBconverter
 - **dictionary**
   - class_dictionary.py : for convert class names each dataset
   - rotation_dictionary.py : for align sensor, label rotation among datasets
-  - Udacity Dataset hasn't included
+  - Udacity Dataset only support LiDAR rotation matrix for extract 2D BBox on Nuscenes
 - **utils**
   - label.py : label class
   - util.py : parse each dataset label, check validation matrix shape
