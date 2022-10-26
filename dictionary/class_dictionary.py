@@ -18,7 +18,17 @@ kitti_dict = {'to_waymo': {'Car': 'VEHICLE',
                               'Tram': None,
                               'Misc': None,
                               'DontCare': None
-                              }
+                              },
+              'to_udacity': {'Car': 'Car',
+                             'Van': 'Car',
+                             'Truck': 'Truck',
+                             'Pedestrian': 'Pedestrian',
+                             'Person_sitting': 'Pedestrian',
+                             'Cyclist': None,
+                             'Tram': None,
+                             'Misc': None,
+                             'DontCare': None,
+                             }
               }
 waymo_dict = {'to_kitti': {'UNKNOWN': 'DontCare',
                            'VEHICLE': 'Car',
@@ -31,7 +41,13 @@ waymo_dict = {'to_kitti': {'UNKNOWN': 'DontCare',
                               'PEDESTRIAN': 'human.pedestrian.adult',
                               'SIGN': None,
                               'CYCLIST': 'vehicle.bicycle'
-                              }
+                              },
+              'to_udacity': {'UNKNOWN': None,
+                             'VEHICLE': 'Car',
+                             'PEDESTRIAN': 'Pedestrian',
+                             'SIGN': None,
+                             'CYCLIST': None
+                             }
               }
 nuscenes_dict = {'to_kitti': {'human.pedestrian.adult': 'Pedestrian',
                               'human.pedestrian.child': 'Pedestrian',
@@ -46,5 +62,10 @@ nuscenes_dict = {'to_kitti': {'human.pedestrian.adult': 'Pedestrian',
                               'vehicle.car': 'VEHICLE',
                               'vehicle.motorcycle': 'CYCLIST',
                               'vehicle.truck': 'VEHICLE'
-                              }
+                              },
+                 'to_udacity': {'human.pedestrian.adult': 'Pedestrian',
+                                'human.pedestrian.child': 'Pedestrian',
+                                'vehicle.car': 'Car',
+                                'vehicle.truck': 'Truck'
+                                }
                  }
