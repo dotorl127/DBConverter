@@ -83,6 +83,7 @@ def parse_label(dataset_type: str, label: list):
                     float(label[4]), float(label[6]), float(label[5]), rot_z]
         label_cls = label[0]
     elif dataset_type == 'udacity':
-        label_2d = [*list(map(int, label))]
+        label_2d = [*list(map(int, label[:-1]))]
+        label_cls = label[-1]
 
     return label_2d, label_3d, label_cls

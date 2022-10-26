@@ -279,6 +279,7 @@ class waymo:
                 x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
             line = ''
+            rot_quat = 0
 
             if self.dst_db_type == 'kitti':
                 line = f'{class_name}, 0, 0, -10, ' \
@@ -292,7 +293,7 @@ class waymo:
                     line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
                            f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
                            f'0, 0, {int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}\n'
-                elif self.dst_db_type == 'udacity':
+                elif self.dst_db_type == 'udacity' and bounding_box != (0, 0, 0, 0):
                     line = f'{int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}, {class_name}\n'
 
             if name != 'FRONT':
@@ -301,9 +302,15 @@ class waymo:
                     f.write(line)
 
             if self.dst_db_type == 'kitti':
-                line = f'{class_name}, 0, 0, -10, ' \
-                       f'0, 0, 0, 0, ' \
+                line = f'{class_name}, 0, 0, -10, 0, 0, 0, 0, ' \
                        f'{height}, {width}, {length}, {x}, {y}, {z}, {rot}\n'
+            elif self.dst_db_type == 'nuscenes':
+                line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
+                       f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
+                       f'0, 0, 0, 0, 0, 0\n'
+            elif self.dst_db_type == 'udacity':
+                line = ''
+
             lines += line
 
         with open(f'{self.dst_dir}label/FRONT/{idx:06d}.txt', 'a') as f:
