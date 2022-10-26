@@ -48,7 +48,7 @@ KetiDBconverter
 ## How to use
 ### Convert
 ```
-python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_dir {target dataset path to save} --tgt_db_type {dataset name to convert[kitti, waymo, nuscenes]}
+python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_dir {target dataset path to save} --tgt_db_type {dataset name to convert[kitti, waymo, nuscenes, udacity]}
 ```
 ### Visualization
 ```

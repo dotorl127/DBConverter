@@ -18,6 +18,8 @@ class KetiDBconverter(object):
             src_db_type = 'kitti'
         elif 'v1.0-mini' in lst_dir:
             src_db_type = 'nuscenes'
+        elif 'object-detection-crowdai' in lst_dir:
+            src_db_type = 'udacity'
         else:
             src_db_type = 'waymo'
 
@@ -42,11 +44,12 @@ class KetiDBconverter(object):
             print('config loaded.')
 
         # get DB directory list
-        self.camera_dir_lst = self.config[self.src_db_type]['sensor_name_list']['camera']
-        self.lidar_dir_lst = self.config[self.src_db_type]['sensor_name_list']['lidar']
-        self.radar_dir_lst = None
-        if 'radar' in self.config[self.src_db_type]['sensor_name_list']:
-            self.radar_dir_lst = self.config[self.src_db_type]['sensor_name_list']['radar']
+        if self.src_db_type in self.config:
+            self.camera_dir_lst = self.config[self.src_db_type]['sensor_name_list']['camera']
+            self.lidar_dir_lst = self.config[self.src_db_type]['sensor_name_list']['lidar']
+            self.radar_dir_lst = None
+            if 'radar' in self.config[self.src_db_type]['sensor_name_list']:
+                self.radar_dir_lst = self.config[self.src_db_type]['sensor_name_list']['radar']
 
         self.create_dir()
         self.load_src_dataset()
@@ -113,9 +116,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--src_db_dir', help='Directory to load Dataset')
     parser.add_argument('--tgt_db_dir', help='Directory to save converted Dataset')
-    parser.add_argument('--tgt_db_type', help='Dataset type to convert [KITTI, Waymo, Nuscenes]')
+    parser.add_argument('--tgt_db_type', help='Dataset type to convert [KITTI, Waymo, Nuscenes, Udacity]')
     parser.add_argument('--config_path', default='db_infos.yaml', help='Dataset configuration yaml file path')
     args = parser.parse_args()
+
+    print(args.src_db_dir)
 
     converter = KetiDBconverter(args.src_db_dir, args.tgt_db_dir, args.tgt_db_type, args.config_path)
     converter.convert()

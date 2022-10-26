@@ -37,13 +37,14 @@ class udacity:
                 else:
                     label_dict[file] = [[*line[:4], line[5]]]
 
-        for frame, file in enumerate(tqdm(filenames)):
+        for frame, file in enumerate(tqdm(filenames[:10])):
             copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/{frame:06d}.jpg')
 
             labels = label_dict[file]
+            lines = ''
 
             for label in labels:
-                x1, y1, x2, y2 = label[:4]
+                x1, y1, x2, y2 = map(int, label[:4])
                 type = label[4]
                 line = ''
 
@@ -57,10 +58,12 @@ class udacity:
                     cnt_x = x1 + width // 2
                     cnt_y = y1 + height // 2
                     line = f'{cnt_x}, {cnt_y}, {width}, {height}, 0, 0, {type}, -1, ' \
-                           f'0, 0, 0, 0, 0, 0, 0'
+                           f'0, 0, 0, 0, 0, 0, 0\n'
                 elif self.dst_db_type == 'nuscenes':
                     line = f'{type}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {-1}, {-1}, ' \
-                           f'{x1}, {y1}, {x2}, {y2}'
+                           f'{x1}, {y1}, {x2}, {y2}\n'
 
-                with open(f'{self.dst_dir}label/{frame:06d}.txt', 'w') as f:
-                    f.write(line)
+                lines += line
+
+            with open(f'{self.dst_dir}label/{frame:06d}.txt', 'w') as f:
+                f.write(lines)

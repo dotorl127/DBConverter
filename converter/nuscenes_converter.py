@@ -118,7 +118,7 @@ class nuscenes:
         return output
 
     def convert(self):
-        print(f'Convert waymo to {self.dst_db_type} Dataset.')
+        print(f'Convert nuscenes to {self.dst_db_type} Dataset.')
         self.split_logs = create_splits_logs('mini_train', self.nusc)
 
         idx = 0
@@ -314,16 +314,17 @@ class nuscenes:
                             yaw = -np.arctan2(v[2], v[0])
                             yaw -= np.pi / 2
 
-                            x1 = int(bbox_2d[0] + ((bbox_2d[2] - bbox_2d[0]) / 2))
-                            y1 = int(bbox_2d[1] + ((bbox_2d[3] - bbox_2d[1]) / 2))
-                            x2 = int(bbox_2d[2] - bbox_2d[0])
-                            y2 = int(bbox_2d[3] - bbox_2d[1])
+                            w = int(bbox_2d[2] - bbox_2d[0])
+                            h = int(bbox_2d[3] - bbox_2d[1])
+                            cx = int(bbox_2d[0] + (w // 2))
+                            cy = int(bbox_2d[1] + (h // 2))
 
                             if self.dst_db_type == 'waymo':
-                                output = f'{x1}, {y1}, {x2}, {y2}, 0, 0, {detection_name}, -1, ' \
+                                output = f'{cx}, {cy}, {w}, {h}, 0, 0, {detection_name}, -1, ' \
                                          f'{box_lidar_nusc.center[0]}, {box_lidar_nusc.center[1]}, {box_lidar_nusc.center[2]}, ' \
                                          f'{box_lidar_nusc.wlh[0]}, {box_lidar_nusc.wlh[1]}, {box_lidar_nusc.wlh[2]}, {yaw}'
                             elif self.dst_db_type == 'udacity':
+                                x1, y1, x2, y2 = map(int, bbox_2d)
                                 output = f'{x1}, {y1}, {x2}, {y2}, {detection_name}'
 
                         # Write to disk.
