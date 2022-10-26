@@ -23,4 +23,5 @@ lid_rot = {'kitti': {'waymo': np.eye(3, dtype=np.float32),
                      'udacity': np.eye(3, dtype=np.float32)},
            'nuscenes': {'kitti': Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix,
                         'waymo': Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix,
-                        'udacity': np.eye(3, dtype=np.float32)}}
+                        'udacity': Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix}
+           }

@@ -173,8 +173,6 @@ class nuscenes:
                                               Quaternion(self.calib_dict[cam_name]['rotation']),
                                               inverse=True)
                 velo_to_cam = ego_to_cam @ lid_to_ego
-
-                # Convert from KITTI to nuScenes LIDAR coordinates, where we apply velo_to_cam.
                 velo_to_cam_kitti = velo_to_cam @ np.linalg.inv(self.lid_rot)
 
                 # Currently not used.
