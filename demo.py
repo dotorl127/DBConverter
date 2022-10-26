@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     if args.vis_type == '3d':
         assert args.dataset_type in ['kitti', 'waymo', 'nuscenes'], f'Udacity dataset does not support 3D visualize'
+        assert os.path.exists(f'{root_dir}lidar/'), f'LiDAR point cloud data has not found'
 
         points_dir_name = None
         lid_lst = os.listdir(f'{root_dir}lidar/')
@@ -83,7 +84,6 @@ if __name__ == '__main__':
                         x1, y1, x2, y2 = label_2d
                         cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
-                img = cv2.resize(img, (0, 0), fx=0.3, fy=0.3)
                 cv2.imshow(f'{camera_name}', img)
             cv2.waitKey(0)
 

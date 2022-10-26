@@ -75,12 +75,12 @@ def parse_label(dataset_type: str, label: list):
                     float(label[11]), float(label[13]), float(label[12]), float(label[14])]
         label_cls = label[6]
     elif dataset_type == 'nuscenes':
-        label_2d = None
-        rot = Rotation.from_quat(list(map(float, label[7:11])))
-        rot_z = rot.as_euler('xyz')[-1]
         label_2d = list(map(int, label[13:]))
-        label_3d = [*list(map(float, label[1:4])),
-                    float(label[4]), float(label[6]), float(label[5]), rot_z]
+        if list(map(float, label[7:11])) != [0, 0, 0, 0]:
+            rot = Rotation.from_quat(list(map(float, label[7:11])))
+            rot_z = rot.as_euler('xyz')[-1]
+            label_3d = [*list(map(float, label[1:4])),
+                        float(label[4]), float(label[6]), float(label[5]), rot_z]
         label_cls = label[0]
     elif dataset_type == 'udacity':
         label_2d = [*list(map(int, label[:-1]))]

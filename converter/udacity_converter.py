@@ -58,10 +58,12 @@ class udacity:
                     height = y2 - y1
                     cnt_x = x1 + width // 2
                     cnt_y = y1 + height // 2
-                    line = f'{cnt_x}, {cnt_y}, {width}, {height}, 0, 0, {type}, -1, ' \
+                    line = f'{cnt_x}, {cnt_y}, {width}, {height}, ' \
+                           f'0, 0, {type}, -1, ' \
                            f'0, 0, 0, 0, 0, 0, 0\n'
                 elif self.dst_db_type == 'nuscenes':
-                    line = f'{type}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {-1}, {-1}, ' \
+                    line = f'{type}, 0, 0, 0, 0, 0, 0, ' \
+                           f'0, 0, 0, 0, {-1}, {-1}, ' \
                            f'{x1}, {y1}, {x2}, {y2}\n'
 
                 lines += line
