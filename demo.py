@@ -65,9 +65,10 @@ if __name__ == '__main__':
     else:
         filenames = sorted(os.listdir(f'{root_dir}label/{camera_names[0]}'))
         filenames = [filename.rstrip('.txt') for filename in filenames]
+        ext = os.listdir(f'{root_dir}camera/{camera_names[0]}')[0].split('.')[-1]
         for filename in filenames:
             for camera_name in camera_names:
-                img = cv2.imread(f'{root_dir}camera/{camera_name}/{filename}.png')
+                img = cv2.imread(f'{root_dir}camera/{camera_name}/{filename}.{ext}')
 
                 with open(f'{root_dir}label/{camera_name}/{filename}.txt', 'r') as f:
                     lines = f.readlines()

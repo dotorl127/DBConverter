@@ -2,6 +2,7 @@ import os
 from shutil import copyfile
 from tqdm import tqdm
 import csv
+from dictionary.class_dictionary import udacity_dict
 
 
 class udacity:
@@ -38,14 +39,14 @@ class udacity:
                     label_dict[file] = [[*line[:4], line[5]]]
 
         for frame, file in enumerate(tqdm(filenames[:10])):
-            copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/{frame:06d}.jpg')
+            copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/front/{frame:06d}.jpg')
 
             labels = label_dict[file]
             lines = ''
 
             for label in labels:
                 x1, y1, x2, y2 = map(int, label[:4])
-                type = label[4]
+                type = udacity_dict[f'to_{self.dst_db_type}'][label[4]]
                 line = ''
 
                 if self.dst_db_type == 'kitti':
@@ -65,5 +66,5 @@ class udacity:
 
                 lines += line
 
-            with open(f'{self.dst_dir}label/{frame:06d}.txt', 'w') as f:
+            with open(f'{self.dst_dir}label/front/{frame:06d}.txt', 'w') as f:
                 f.write(lines)
