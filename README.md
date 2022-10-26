@@ -56,7 +56,6 @@ python demo.py --root_dir {dataset path to load} --dataset_type {dataset type na
 ```
 
 ## KITTI
-
 ### Directory hierarchy
 ```
 root
@@ -77,6 +76,7 @@ type, truncated, occluded, alpha, bbox(left, top, right, bottom), dimensions(hei
 ### Coordinate system
 - Camera : x(right), y(bottom), z(forward)
 - LiDAR : x(forward), y(left), z(up)
+
 
 ## Waymo
 ### Directory hierarchy
@@ -102,6 +102,7 @@ bbox(center x, y, width, height), speed(x, y), type, id, location(x, y, z), dime
 ### Coordinate system
 - Camera : x(forward), y(left), z(up)
 - LiDAR : x(forward), y(left), z(up)
+
 
 ## Nuscenes
 ### Directory hierarchy
@@ -156,8 +157,8 @@ type, translation(center x, y, z), size(width, height, length), rotation(quatern
 - Camera : x(right), y(down), z(forward)
 - LiDAR : x(right), y(forward), z(up)
 
-## Udacity
 
+## Udacity
 ### Directory hierarchy
 ```
 root
