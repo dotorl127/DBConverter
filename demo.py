@@ -70,6 +70,10 @@ if __name__ == '__main__':
         for filename in filenames:
             for camera_name in camera_names:
                 img = cv2.imread(f'{root_dir}camera/{camera_name}/{filename}.{ext}')
+                width = img.shape[1]
+                height = img.shape[0]
+                ratio = height / width
+                img = cv2.resize(img, (720, int(720 * ratio)))
 
                 with open(f'{root_dir}label/{camera_name}/{filename}.txt', 'r') as f:
                     lines = f.readlines()
@@ -82,7 +86,14 @@ if __name__ == '__main__':
                             continue
 
                         x1, y1, x2, y2 = label_2d
-                        cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+                        x1 = int(x1 * img.shape[1] / width)
+                        y1 = int(y1 * img.shape[0] / height)
+                        x2 = int(x2 * img.shape[1] / width)
+                        y2 = int(y2 * img.shape[0] / height)
+
+                        cv2.putText(img, cls, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+                        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
                 cv2.imshow(f'{camera_name}', img)
             cv2.waitKey(0)
