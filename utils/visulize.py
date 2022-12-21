@@ -56,7 +56,7 @@ def boxes_to_corners_3d(boxes3d):
 def draw_3d_bbox(fig, corners3d, cls, color=(1, 0, 0), line_width=2, tube_radius=None):
     for n in range(len(corners3d)):
         b = corners3d[n]  # (8, 3)
-        mlab.text3d(b[6, 0], b[6, 1], b[6, 2], '%s' % cls[n], scale=(0.3, 0.3, 0.3), color=color, figure=fig)
+        mlab.text3d(b[6, 0], b[6, 1], b[6, 2], '%s' % cls[n], scale=(0.8, 0.8, 0.8), color=color, figure=fig)
 
         for k in range(0, 4):
             i, j = k, (k + 1) % 4
@@ -85,7 +85,7 @@ def draw_3d_bbox(fig, corners3d, cls, color=(1, 0, 0), line_width=2, tube_radius
 
 
 def visualization(points: np.ndarray, labels_3d: list=None, labels_cls: list=None):
-    fig = mlab.figure(figure=None, bgcolor=(0, 0, 0), fgcolor=(1.0, 1.0, 1.0), engine=None, size=(600, 600))
+    fig = mlab.figure(figure=None, bgcolor=(0, 0, 0), fgcolor=(1.0, 1.0, 1.0), engine=None, size=(800, 800))
     fig = draw_multi_grid_range(fig, bv_range=(-60, -60, 60, 60))
     fig = create_origin(fig)
     fig = draw_points(fig, points)

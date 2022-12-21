@@ -72,7 +72,7 @@ def parse_label(dataset_type: str, label: list):
         y2 = y1 + int(label[3])
         label_2d = [x1, y1, x2, y2]
         label_3d = [*list(map(float, label[8:11])),
-                    float(label[11]), float(label[13]), float(label[12]), float(label[14])]
+                    float(label[11]), float(label[12]), float(label[13]), float(label[14])]
         label_cls = label[6]
     elif dataset_type == 'nuscenes':
         label_2d = list(map(int, label[13:]))

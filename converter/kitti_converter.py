@@ -55,7 +55,7 @@ class kitti:
             cnt_y = int(label.label_2d.y1 + h / 2)
             return f'{cnt_x}, {cnt_y}, {w}, {h}, 0, 0, {type}, -1, ' \
                    f'{label.label_3d.locs[0]}, {label.label_3d.locs[1]}, {label.label_3d.locs[2]}, ' \
-                   f'{label.label_3d.dims[0]}, {label.label_3d.dims[1]}, {label.label_3d.dims[2]}, ' \
+                   f'{label.label_3d.dims[0]}, {label.label_3d.dims[2]}, {label.label_3d.dims[1]}, ' \
                    f'{label.label_3d.rot}, 0'
         elif dst_db_type == 'nuscenes':
             rot = Rotation.from_euler('xyz', [0, 0, label.label_3d.rot])
@@ -79,7 +79,7 @@ class kitti:
 
         calib_filter = ['P2', 'R0_rect', 'Tr_velo_to_cam', 'Tr_imu_to_velo']
 
-        for index, filename in enumerate(tqdm(filenames[:10])):
+        for index, filename in enumerate(tqdm(filenames[:100])):
             self.calib_dict.clear()
             # calibration file read, parse
             with open(f'{calib_path}{filename}.txt') as f:

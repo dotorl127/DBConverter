@@ -320,18 +320,6 @@ class waymo:
             with open(f'{self.dst_dir}label/{filename}/{idx:06d}.txt', 'a') as f:
                 f.write('')
 
-    def save_pose(self, frame, idx):
-        if self.dst_db_type == 'nuscenes':
-            pose = np.array(frame.pose.transform).reshape(4, 4)
-            rot = Rotation.from_matrix(pose[:3, :3])
-            rot_quat = rot.as_quat()
-
-            with open(f'{self.dst_dir}pose/{idx:06d}.txt', 'w') as f:
-                line = ', '.join(map(str, pose[:3, 3].reshape(-1).tolist())) + '\n'
-                f.write(f'translation: {line}')
-                line = ', '.join(map(str, rot_quat.reshape(-1).tolist())) + '\n'
-                f.write(f'rotation: {line}')
-
     def convert(self):
         print(f'Convert waymo to {self.dst_db_type} Dataset.')
 
@@ -349,9 +337,8 @@ class waymo:
             self.save_image(frame, index)
             self.save_lidar(frame, index)
             self.save_label(frame, index)
-            self.save_pose(frame, index)
 
             cnt += 1
 
-            if cnt == 10:
+            if cnt == 100:
                 break

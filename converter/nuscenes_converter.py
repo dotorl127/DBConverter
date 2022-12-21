@@ -124,7 +124,7 @@ class nuscenes:
         idx = 0
 
         sample_tokens = self._split_to_samples(self.split_logs)
-        sample_tokens = sample_tokens[:10]
+        sample_tokens = sample_tokens[:100]
 
         r0_rect = Quaternion(axis=[1, 0, 0], angle=0)  # Dummy values.
         imsize = (1600, 900)

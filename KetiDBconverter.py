@@ -36,7 +36,7 @@ class KetiDBconverter(object):
         self.check_db_type(db_type)
         assert self.tgt_db_type is not None, f'Invalid Target Dataset Type.\n "{db_type}" Please Check.'
 
-        self.ret_dir = ['camera', 'lidar', 'label', 'calib', 'pose']
+        self.ret_dir = ['camera', 'lidar', 'label', 'calib']
 
         # load yaml config file
         with open(config_path, 'r') as f:

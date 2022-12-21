@@ -5,13 +5,9 @@ import numpy as np
 import mayavi.mlab as mlab
 import cv2
 
-import utils.util
 from utils import visulize as V
 from utils import util
 
-from pyquaternion import Quaternion
-from nuscenes.utils.geometry_utils import BoxVisibility, transform_matrix
-from scipy.spatial.transform.rotation import Rotation
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -57,6 +53,7 @@ if __name__ == '__main__':
                             label = line.strip().split(', ')
                             # label 3d format is [class_name, x, y, z, width, height, length, rotation_z]
                             _, label_3d, label_cls = util.parse_label(args.dataset_type, label)
+
                             labels_3d.append(label_3d)
                             labels_cls.append(label_cls)
 
@@ -73,7 +70,7 @@ if __name__ == '__main__':
                 width = img.shape[1]
                 height = img.shape[0]
                 ratio = height / width
-                img = cv2.resize(img, (720, int(720 * ratio)))
+                img = cv2.resize(img, (600, int(600 * ratio)))
 
                 with open(f'{root_dir}label/{camera_name}/{filename}.txt', 'r') as f:
                     lines = f.readlines()

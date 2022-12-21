@@ -38,7 +38,7 @@ class udacity:
                 else:
                     label_dict[file] = [[*line[:4], line[5]]]
 
-        for frame, file in enumerate(tqdm(filenames[:10])):
+        for frame, file in enumerate(tqdm(filenames[:100])):
             copyfile(f'{img_path}{file}.jpg', f'{self.dst_dir}camera/front/{frame:06d}.jpg')
 
             labels = label_dict[file]
