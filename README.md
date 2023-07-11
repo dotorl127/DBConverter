@@ -3,7 +3,8 @@ for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 
 ## Related work
 - [x] convert coordinates system among KITTI, Waymo, Nuscenes 
-- [x] extract sensor data in tfrecord file
+- [x] extract sensor data into tfrecord file
+- [x] parse json metadata files and extract each data
 - [x] convert label format, class names for each dataset
 - [x] visualization point cloud with 3D label
 - [x] visualization image with 2D label
