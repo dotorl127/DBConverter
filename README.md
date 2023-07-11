@@ -10,6 +10,7 @@ for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 
 ## Requirements
 - equal or higher **Python3.8**
+- please reference to requirements.txt
 
 ## KetiDBconverter directory hierarchy
 ```
