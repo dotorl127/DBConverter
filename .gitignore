@@ -1,1 +1,2 @@
-WORKSPACE/
+*.pyc
+__pycache__/
