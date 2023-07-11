@@ -9,7 +9,7 @@ for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 - [x] visualization image with 2D label
 
 ## Requirements
-- Python 3.8
+- equal or higher **Python3.8**
 
 ## KetiDBconverter directory hierarchy
 ```
