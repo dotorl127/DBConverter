@@ -1,9 +1,8 @@
-numpy~=1.19.2
 tqdm==4.62.3
 matplotlib==3.3.4
-scipy==1.4.1
-opencv-python==4.6.0.66
-mayavi==4.8.0
+opencv-python==4.1.2.30
+mayavi==4.8.1
 PyQt5==5.15.6
 nuscenes-devkit==1.1.9
-waymo-open-dataset-tf-2-1-0==1.2.0
+waymo-open-dataset-tf-2-6-0==1.4.9
+protobuf~=3.20

@@ -19,3 +19,10 @@ nuscenes:
     lidar: ['LIDAR_TOP']
     radar: ['RADAR_BACK_LEFT', 'RADAR_BACK_RIGHT', 'RADAR_FRONT', 'RADAR_FRONT_LEFT', 'RADAR_FRONT_RIGHT']
   class_name_list: ['human.pedestrian.adult', 'vehicle.car', 'vehicle.truck', 'vehicle.bus.rigid', 'vehicle.bicycle']
+
+kakao:
+  sensor_name_list:
+    camera: ['camera[01]', 'camera[02]', 'camera[03]', 'camera[04]', 'camera[05]']
+    lidar: ['lidar[00]']
+    radar: []
+  class_name_list: ['human.pedestrian.adult', 'vehicle.car', 'vehicle.truck', 'vehicle.bus.rigid', 'vehicle.bicycle']

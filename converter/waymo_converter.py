@@ -190,7 +190,7 @@ class waymo:
         return points, cp_points, intensity
 
     def save_lidar(self, frame, idx: int):
-        range_images, camera_projections, range_image_top_pose = parse_range_image_and_camera_projection(frame)
+        range_images, camera_projections, _, range_image_top_pose = parse_range_image_and_camera_projection(frame)
         points_0, cp_points_0, intensity_0 = self.convert_range_image_to_point_cloud(
             frame,
             range_images,

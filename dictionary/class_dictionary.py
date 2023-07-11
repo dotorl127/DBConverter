@@ -82,3 +82,17 @@ udacity_dict = {'to_kitti': {'Pedestrian': 'Pedestrian',
                              'Truck': 'VEHICLE'
                              }
                 }
+
+kakao_dict = {'to_kitti': {'Pedestrian': 'Pedestrian',
+                             'Car': 'Car',
+                             'Truck': 'Truck'
+                             },
+                'to_nuscenes': {'Pedestrian': 'human.pedestrian.adult',
+                                'Car': 'vehicle.car',
+                                'Truck': 'vehicle.truck'
+                                },
+                'to_waymo': {'Pedestrian': 'PEDESTRIAN',
+                             'Car': 'VEHICLE',
+                             'Truck': 'VEHICLE'
+                             }
+                }
