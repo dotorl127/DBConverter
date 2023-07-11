@@ -175,3 +175,47 @@ root
 ```
 xmin, ymin, xmax, ymax, Frame, Type, Preview URL
 ```
+
+## KAKAO
+### Directory hierarchy
+```
+root
+├─ sensor
+│  ├─ camera[00]
+│  │  ├─ {timestamp}.jpg
+│  │  ├─ ...
+│  │  └─ {timestamp}.jpg
+│  ├─ ...
+│  ├─ camera[05]
+│  └─ lidar[00]
+└─ meta
+   ├─ dataset.json
+   ├─ ego_pose.json
+   ├─ frame.json
+   ├─ frame_annotation.json
+   ├─ frame_data.json
+   ├─ instance.json
+   ├─ log.json
+   ├─ sensor.json
+   └─ preset.yaml
+```
+### Label format
+check frame_annotation json file<br />
+bbox_image3d:
+```
+type, corners(x,y coordinates of the 8 vertices of the cuboid)
+```
+bbox_pcd3d:
+```
+type, x, y, z, w, l, h, orientation(quaternion) 
+```
+
+### Calibration format
+- {camera_name}_translation : {camera_name}'s location to base_link
+- {camera_name}_rotation : {camera_name}'s rotation to base_link
+- {camera_name}_intrinsic : {camera_name}'s intrinsic matrix
+- {LiDAR_name}_translation : {LiDAR_name}'s location to base_link
+- {LiDAR_name}_rotation : {LiDAR_name}'s rotation to base_link
+### Coordinate system
+- Camera : x(right), y(down), z(forward)
+- LiDAR : x(forward), y(left), z(up)
