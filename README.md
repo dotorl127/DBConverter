@@ -2,18 +2,12 @@
 for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 
 ## July 2023 Update
-
----
 - [ ] add KAKAO dataset
 
 ## December 2022 Update
-
----
 - [x] added Udacity dataset
 
 ## October 2022 Update
-
----
 - [x] convert coordinates system among KITTI, Waymo, Nuscenes 
 - [x] extract sensor data into tfrecord file
 - [x] parse json metadata files and extract each data
