@@ -187,7 +187,10 @@ root
 │  │  └─ {timestamp}.jpg
 │  ├─ ...
 │  ├─ camera[05]
-│  └─ lidar[00]
+│  ├─ lidar[00]
+│  │  ├─ {timestamp}.pcd
+│  │  ├─ ...
+│  └─ └─ {timestamp}.pcd
 └─ meta
    ├─ dataset.json
    ├─ ego_pose.json
