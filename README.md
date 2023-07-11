@@ -1,15 +1,25 @@
 # KetiDBconverter
 for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 
-## Related work
+## July 2023 Update
+
+---
+- [ ] add KAKAO dataset
+
+## December 2022 Update
+
+---
+- [x] added Udacity dataset
+
+## October 2022 Update
+
+---
 - [x] convert coordinates system among KITTI, Waymo, Nuscenes 
 - [x] extract sensor data into tfrecord file
 - [x] parse json metadata files and extract each data
 - [x] convert label format, class names for each dataset
 - [x] visualization point cloud with 3D label
 - [x] visualization image with 2D label
-- [x] added Udacity dataset
-- [ ] add KAKAO dataset
 
 ## Requirements
 - equal or higher **Python3.8**
