@@ -7,7 +7,7 @@ for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 - [x] convert label format, class names for each dataset
 - [x] visualization point cloud with 3D label
 - [x] visualization image with 2D label
-- [x] add Udacity dataset
+- [x] added Udacity dataset
 - [ ] add KAKAO dataset
 
 ## Requirements
