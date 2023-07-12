@@ -10,11 +10,11 @@ from scipy.spatial.transform import Rotation
 from utils.util import check_valid_mat
 
 
-class KAKAO:
+class kakao_parser:
     def __init__(self,
-                 dataroot: str = ''):
-        self.dataroot = dataroot
-        self.table_root = osp.join(self.dataroot, 'meta')
+                 src_dir: str = None):
+        self.src_dir = src_dir
+        self.table_root = osp.join(self.src_dir, 'meta')
         self.table_names = ['dataset', 'ego_pose', 'frame', 'frame_annotation',
                             'frame_data', 'instance', 'log', 'sensor']
         self.dataset = self.__load_table__('dataset')
@@ -76,3 +76,33 @@ class KAKAO:
 
     def getind(self, table_name: str, token: str) -> int:
         return self._token2ind[table_name][token]
+
+
+class kakao:
+    def __init__(self,
+                 src_dir: str = None,
+                 dst_dir: str = None,
+                 dst_db_type: str = None):
+        assert src_dir is not None or dst_dir is not None or dst_db_type is not None, \
+            f'Invalid Parameter Please Check {src_dir}\n{dst_dir}\n{dst_db_type}'
+
+        self.src_dir = src_dir
+        self.dst_dir = dst_dir
+        self.dst_db_type = dst_db_type
+        self.kakaodb = kakao_parser(self.src_dir)
+        print(f'Set Destination Dataset Type {self.dst_db_type}')
+
+    def convert(self):
+        print(f'Convert kakao to {self.dst_db_type} Dataset.')
+
+        for frame in self.kakaodb.frame:
+            for anno_uuid in frame['anns']:
+                frame_annotation = self.kakaodb.get('frame_annotation', anno_uuid)
+                frame_data = self.kakaodb.get('frame_data', frame_annotation['frame_data_uuid'])
+                sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
+                ego_pose_data = self.kakaodb.get('ego_pose', frame_data['ego_pose_uuid'])
+
+                # TODO: convert coordinates system
+                # TODO: save sensor raw data
+                # TODO: save converted label
+
