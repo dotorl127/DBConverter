@@ -78,6 +78,25 @@ class kakao_parser:
         return self._token2ind[table_name][token]
 
 
+def quat2euler(w, x, y, z):
+    ysqr = y * y
+
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + ysqr)
+    X = np.degrees(np.arctan2(t0, t1))
+
+    t2 = +2.0 * (w * y - z * x)
+
+    t2 = np.clip(t2, a_min=-1.0, a_max=1.0)
+    Y = np.degrees(np.arcsin(t2))
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (ysqr + z * z)
+    Z = np.degrees(np.arctan2(t3, t4))
+
+    return X, Y, Z
+
+
 class kakao:
     def __init__(self,
                  src_dir: str = None,
@@ -102,7 +121,28 @@ class kakao:
                 sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
                 ego_pose_data = self.kakaodb.get('ego_pose', frame_data['ego_pose_uuid'])
 
+                # TODO: save sensor calibration data
                 # TODO: convert coordinates system
                 # TODO: save sensor raw data
-                # TODO: save converted label
 
+                if 'kitti' in self.dst_db_type:
+                    cls = kakao_dict[f'to_kitti'][frame_annotation['category_name']]
+
+                    with open(f'{osp.join(self.dst_dir, "labels", frame_data["name"])}', 'w') as f:
+                        if frame_annotation['annotation_type_name'] == 'bbox_pcd3d':
+                            xyz = ', '.join(frame_annotation['geometry']['center'])
+                            wlh = ', '.join(frame_annotation['geometry']['wlh'])
+                            _, _, yaw = quat2euler(*frame_annotation['geometry']['orientation'])
+                            f.write(f'{cls}, {xyz}, {wlh}, {yaw}\n')
+                        elif frame_annotation['annotation_type_name'] == 'bbox_image3d':
+                            x1 = min(frame_annotation['geometry']['corners'][0])
+                            y1 = min(frame_annotation['geometry']['corners'][1])
+                            x2 = max(frame_annotation['geometry']['corners'][0])
+                            y2 = max(frame_annotation['geometry']['corners'][1])
+                            f.write(f'{cls}, {x1}, {y1}, {x2}, {y2}\n')
+                elif self.dst_db_type == 'waymo':
+                    pass
+                elif self.dst_db_type == 'nuscenes':
+                    pass
+                elif self.dst_db_type == 'udacity':
+                    pass

@@ -28,8 +28,11 @@ kitti_dict = {'to_waymo': {'Car': 'VEHICLE',
                              'Tram': None,
                              'Misc': None,
                              'DontCare': None,
-                             }
+                             },
+              'to_kakao': {
               }
+              }
+
 waymo_dict = {'to_kitti': {'UNKNOWN': 'DontCare',
                            'VEHICLE': 'Car',
                            'PEDESTRIAN': 'Pedestrian',
@@ -47,8 +50,11 @@ waymo_dict = {'to_kitti': {'UNKNOWN': 'DontCare',
                              'PEDESTRIAN': 'Pedestrian',
                              'SIGN': None,
                              'CYCLIST': None
-                             }
+                             },
+              'to_kakao': {
               }
+              }
+
 nuscenes_dict = {'to_kitti': {'human.pedestrian.adult': 'Pedestrian',
                               'human.pedestrian.child': 'Pedestrian',
                               'vehicle.bicycle': 'Cyclist',
@@ -67,8 +73,11 @@ nuscenes_dict = {'to_kitti': {'human.pedestrian.adult': 'Pedestrian',
                                 'human.pedestrian.child': 'Pedestrian',
                                 'vehicle.car': 'Car',
                                 'vehicle.truck': 'Truck'
-                                }
+                                },
+                 'to_kakao': {
                  }
+                 }
+
 udacity_dict = {'to_kitti': {'Pedestrian': 'Pedestrian',
                              'Car': 'Car',
                              'Truck': 'Truck'
@@ -80,19 +89,18 @@ udacity_dict = {'to_kitti': {'Pedestrian': 'Pedestrian',
                 'to_waymo': {'Pedestrian': 'PEDESTRIAN',
                              'Car': 'VEHICLE',
                              'Truck': 'VEHICLE'
-                             }
+                             },
+                'to_kakao': {
+                }
                 }
 
-kakao_dict = {'to_kitti': {'Pedestrian': 'Pedestrian',
-                             'Car': 'Car',
-                             'Truck': 'Truck'
-                             },
-                'to_nuscenes': {'Pedestrian': 'human.pedestrian.adult',
-                                'Car': 'vehicle.car',
-                                'Truck': 'vehicle.truck'
-                                },
-                'to_waymo': {'Pedestrian': 'PEDESTRIAN',
-                             'Car': 'VEHICLE',
-                             'Truck': 'VEHICLE'
-                             }
-                }
+kakao_dict = {
+    'to_kitti': {
+    },
+    'to_nuscenes': {
+    },
+    'to_waymo': {
+    },
+    'to_udacity': {
+    }
+}
