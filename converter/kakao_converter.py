@@ -3,6 +3,7 @@ import os.path as osp
 import numpy as np
 from shutil import copyfile
 from tqdm import tqdm
+import json
 
 from dictionary.class_dictionary import kakao_dict
 from dictionary.rotation_dictionary import cam_rot, lid_rot
@@ -121,10 +122,10 @@ class kakao:
         print(f'Convert kakao to {self.dst_db_type} Dataset.')
 
         for sensor in self.kakaodb.sensor:
-            calib_file_path = osp.join(self.dst_dir, 'calibration', sensor['type'],
+            calib_file_path = osp.join(self.dst_dir, 'calib', sensor['name'],
                                        sensor['name'] + '.txt')
             if not osp.exists(calib_file_path):
-                with open(calib_file_path, 'r') as f:
+                with open(calib_file_path, 'w') as f:
                     loc = list(map(float, sensor['translation']))
                     rot = list(map(float, sensor['rotation']))
                     intrinsic = sensor['intrinsic']['parameter']
@@ -141,16 +142,10 @@ class kakao:
                 sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
                 ego_pose_data = self.kakaodb.get('ego_pose', frame_data['ego_pose_uuid'])
 
-                f_name = f'{frame_data["file_name"]}.{frame["file_format"]}'
+                f_name = f'{frame_data["file_name"]}.{frame_data["file_format"]}'
                 src_path = osp.join(self.src_dir, 'sensor', frame_data['name'], f_name)
                 dst_path = osp.join(self.dst_dir, frame_data['type'], frame_data['name'], f_name)
                 copyfile(src_path, dst_path)
-
-
-                x1, y1, x2, y2 = -1, -1, -1, -1
-                x, y, z = 'None', 'None', 'None'
-                w, l, h = 'None', 'None', 'None'
-                yaw = 'None'
 
                 if frame_annotation['annotation_type_name'] == 'bbox_pcd3d':
                     x, y, z = list(map(float, frame_annotation['geometry']['center']))
@@ -159,32 +154,23 @@ class kakao:
 
                     if self.dst_db_type == 'kitti':
                         z -= h / 2
-                        rot -= np.pi / 2
+                        yaw -= np.pi / 2
 
                     # project bounding box to the virtual reference frame
                     if self.dst_db_type == 'kitti':
                         x, y, z, _ = self.cam_rot @ np.array([x, y, z, 1]).T
                     else:
                         x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
-                elif frame_annotation['annotation_type_name'] == 'bbox_image3d':
-                    x, y = frame_annotation['geometry']['corners']
-                    x1 = min(x)
-                    y1 = min(y)
-                    x2 = max(x)
-                    y2 = max(y)
 
-                if self.dst_db_type != 'udacity' and yaw != 'None':
-                    with open(f'{osp.join(self.dst_dir, "labels", frame_data["name"])}', 'a') as f:
+                    with open(
+                            f'{osp.join(self.dst_dir, "label", frame_data["name"], frame_data["file_name"] + ".txt")}',
+                            'a') as f:
                         if self.dst_db_type == 'kitti' and yaw != 'None':
                             cls = kakao_dict[f'to_kitti'][frame_annotation['category_name']]
-                            f.write(f'{cls}, 0, 0, -10, {x1}, {y1}, {x2}, {y2}, {x}, {y}, {z}, {h}, {w}, {l}, {yaw}\n')
+                            f.write(f'{cls}, 0, 0, -10, -1, -1, -1, -1, {x}, {y}, {z}, {h}, {w}, {l}, {yaw}\n')
                         elif self.dst_db_type == 'waymo':
                             cls = kakao_dict[f'to_waymo'][frame_annotation['category_name']]
-                            w = x2 - x1
-                            h = y2 - y1
-                            cx = x1 + w / 2
-                            cy = y1 + h / 2
-                            f.write(f'{cx}, {cy}, {w}, {h}, 0, 0, {cls}, -1, '
+                            f.write(f'-1, -1, -1, -1, 0, 0, {cls}, -1, '
                                     f'{x}, {y}, {z}, {w}, {l}, {h}, {yaw}\n')
                         elif self.dst_db_type == 'nuscenes':
                             cls = kakao_dict[f'to_nuscenes'][frame_annotation['category_name']]
@@ -193,7 +179,31 @@ class kakao:
                             f.write(f'{cls}, {x}, {y}, {z}, {w}, {h}, {l}, '
                                     f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, '
                                     f'0, 0, -1, -1, -1, -1\n')
-                elif self.dst_db_type == 'udacity' and (x1, y1, x2, y2) != (-1, -1, -1, -1):
-                    with open(f'{osp.join(self.dst_dir, "labels", frame_data["name"])}', 'a') as f:
-                        cls = kakao_dict[f'to_udacity'][frame_annotation['category_name']]
-                        f.write(f'{x1}, {y1}, {x2}, {y2}, {cls}\n')
+                elif frame_annotation['annotation_type_name'] == 'bbox_image3d' and \
+                        frame_annotation['geometry']['corners'] is not None:
+                    with open(
+                            f'{osp.join(self.dst_dir, "label", frame_data["name"], frame_data["file_name"] + ".txt")}',
+                            'a') as f:
+                        corners = frame_annotation['geometry']['corners']
+                        x, y = corners[0], corners[1]
+                        x1, y1, x2, y2 = min(x), min(y), max(x), max(y)
+
+                        if self.dst_db_type == 'kitti':
+                            cls = kakao_dict[f'to_kitti'][frame_annotation['category_name']]
+                            f.write(f'{cls}, 0, 0, -10, {x1}, {y1}, {x2}, {y2}, -1, -1, -1, -1, -1, -1, -1\n')
+                        elif self.dst_db_type == 'waymo':
+                            cls = kakao_dict[f'to_waymo'][frame_annotation['category_name']]
+                            w = x2 - x1
+                            h = y2 - y1
+                            cx = x1 + w / 2
+                            cy = y1 + h / 2
+                            f.write(f'{cx}, {cy}, {w}, {h}, 0, 0, {cls}, -1, '
+                                    f', -1, -1, -1, -1, -1, -1, -1\n')
+                        elif self.dst_db_type == 'nuscenes':
+                            cls = kakao_dict[f'to_nuscenes'][frame_annotation['category_name']]
+                            f.write(f'{cls}, -1, -1, -1, -1, -1, -1, '
+                                    f'0, 0, 0, 0, '
+                                    f'0, 0, {x1}, {y1}, {x2}, {y2}\n')
+                        elif self.dst_db_type == 'udacity':
+                            cls = kakao_dict[f'to_udacity'][frame_annotation['category_name']]
+                            f.write(f'{x1}, {y1}, {x2}, {y2}, {cls}\n')

@@ -17,8 +17,10 @@ class KetiDBconverter(object):
             src_db_type = 'nuscenes'
         elif 'object-detection-crowdai' in lst_dir:
             src_db_type = 'udacity'
-        else:
+        elif 'tfrecord' in lst_dir:
             src_db_type = 'waymo'
+        elif 'meta' in lst_dir:
+            src_db_type = 'kakao'
 
         if src_dir[-1] != '/':
             src_dir += '/'
@@ -80,6 +82,13 @@ class KetiDBconverter(object):
                 if not os.path.isdir(path):
                     os.makedirs(path)
             for lid_dir_name in self.lidar_dir_lst:
+                if self.src_db_type == 'kakao':
+                    path = self.tgt_path + 'calib/' + lid_dir_name
+                    if not os.path.isdir(path):
+                        os.makedirs(path)
+                    path = self.tgt_path + 'label/' + lid_dir_name
+                    if not os.path.isdir(path):
+                        os.makedirs(path)
                 path = self.tgt_path + 'lidar/' + lid_dir_name
                 if not os.path.isdir(path):
                     os.makedirs(path)
