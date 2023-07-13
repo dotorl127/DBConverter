@@ -82,6 +82,7 @@ class KetiDBconverter(object):
                 if not os.path.isdir(path):
                     os.makedirs(path)
             for lid_dir_name in self.lidar_dir_lst:
+                # for test TODO: delete and modify
                 if self.src_db_type == 'kakao':
                     path = self.tgt_path + 'calib/' + lid_dir_name
                     if not os.path.isdir(path):

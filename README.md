@@ -221,11 +221,9 @@ type, x, y, z, w, l, h, orientation(quaternion)
 ```
 
 ### Calibration format
-- {camera_name}_translation : {camera_name}'s location to base_link
-- {camera_name}_rotation : {camera_name}'s rotation to base_link
 - {camera_name}_intrinsic : {camera_name}'s intrinsic matrix
-- {LiDAR_name}_translation : {LiDAR_name}'s location to base_link
-- {LiDAR_name}_rotation : {LiDAR_name}'s rotation to base_link
+- {camera_name}_extrinsic : {camera_name}'s intrinsic matrix
+- {LiDAR_name}_extrinsic : {LiDAR_name}'s location to base_link
 ### Coordinate system
 - Camera : x(right), y(down), z(forward)
 - LiDAR : x(forward), y(left), z(up)
