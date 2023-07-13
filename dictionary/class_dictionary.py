@@ -1,106 +1,299 @@
 # class name mapping table for each different dataset.
-kitti_dict = {'to_waymo': {'Car': 'VEHICLE',
-                           'Van': 'VEHICLE',
-                           'Truck': 'VEHICLE',
-                           'Pedestrian': 'PEDESTRIAN',
-                           'Person_sitting': 'PEDESTRIAN',
-                           'Cyclist': 'CYCLIST',
-                           'Tram': None,
-                           'Misc': 'UNKNOWN',
-                           'DontCare': 'UNKNOWN',
-                           },
-              'to_nuscenes': {'Car': 'vehicle.car',
-                              'Van': 'vehicle.car',
-                              'Truck': 'vehicle.truck',
-                              'Pedestrian': 'human.pedestrian.adult',
-                              'Person_sitting': 'human.pedestrian.adult',
-                              'Cyclist': 'vehicle.bicycle',
-                              'Tram': None,
-                              'Misc': None,
-                              'DontCare': None
-                              },
-              'to_udacity': {'Car': 'Car',
-                             'Van': 'Car',
-                             'Truck': 'Truck',
-                             'Pedestrian': 'Pedestrian',
-                             'Person_sitting': 'Pedestrian',
-                             'Cyclist': None,
-                             'Tram': None,
-                             'Misc': None,
-                             'DontCare': None,
-                             },
-              'to_kakao': {
-              }
-              }
+kitti_dict = {
+    'to_waymo': {
+        'Car': 'VEHICLE',
+        'Van': 'VEHICLE',
+        'Truck': 'VEHICLE',
+        'Pedestrian': 'PEDESTRIAN',
+        'Person_sitting': 'PEDESTRIAN',
+        'Cyclist': 'CYCLIST',
+        'Tram': None,
+        'Misc': 'UNKNOWN',
+        'DontCare': 'UNKNOWN',
+    },
+    'to_nuscenes': {
+        'Car': 'vehicle.car',
+        'Van': 'vehicle.car',
+        'Truck': 'vehicle.truck',
+        'Pedestrian': 'human.pedestrian.adult',
+        'Person_sitting': 'human.pedestrian.adult',
+        'Cyclist': 'vehicle.bicycle',
+        'Tram': None,
+        'Misc': None,
+        'DontCare': None
+    },
+    'to_udacity': {
+        'Car': 'Car',
+        'Van': 'Car',
+        'Truck': 'Truck',
+        'Pedestrian': 'Pedestrian',
+        'Person_sitting': 'Pedestrian',
+        'Cyclist': None,
+        'Tram': None,
+        'Misc': None,
+        'DontCare': None,
+    },
+    'to_kakao': {
+        'Car': 'dynamic_object.vehicle.car',
+        'Van': None,
+        'Truck': 'dynamic_object.vehicle.truck',
+        'Pedestrian': 'dynamic_object.human.pedestrian',
+        'Person_sitting': 'dynamic_object.human.pedestrian',
+        'Cyclist': 'dynamic_object.vehicle.bicycle',
+        'Tram': None,
+        'Misc': None,
+        'DontCare': None,
+    }
+}
 
-waymo_dict = {'to_kitti': {'UNKNOWN': 'DontCare',
-                           'VEHICLE': 'Car',
-                           'PEDESTRIAN': 'Pedestrian',
-                           'SIGN': 'DontCare',
-                           'CYCLIST': 'Cyclist'
-                           },
-              'to_nuscenes': {'UNKNOWN': None,
-                              'VEHICLE': 'vehicle.car',
-                              'PEDESTRIAN': 'human.pedestrian.adult',
-                              'SIGN': None,
-                              'CYCLIST': 'vehicle.bicycle'
-                              },
-              'to_udacity': {'UNKNOWN': None,
-                             'VEHICLE': 'Car',
-                             'PEDESTRIAN': 'Pedestrian',
-                             'SIGN': None,
-                             'CYCLIST': None
-                             },
-              'to_kakao': {
-              }
-              }
+waymo_dict = {
+    'to_kitti': {
+        'UNKNOWN': 'DontCare',
+        'VEHICLE': 'Car',
+        'PEDESTRIAN': 'Pedestrian',
+        'SIGN': 'DontCare',
+        'CYCLIST': 'Cyclist'
+    },
+    'to_nuscenes': {
+        'UNKNOWN': None,
+        'VEHICLE': 'vehicle.car',
+        'PEDESTRIAN': 'human.pedestrian.adult',
+        'SIGN': None,
+        'CYCLIST': 'vehicle.bicycle'
+    },
+    'to_udacity': {
+        'UNKNOWN': None,
+        'VEHICLE': 'Car',
+        'PEDESTRIAN': 'Pedestrian',
+        'SIGN': None,
+        'CYCLIST': None
+    },
+    'to_kakao': {
+    }
+}
 
-nuscenes_dict = {'to_kitti': {'human.pedestrian.adult': 'Pedestrian',
-                              'human.pedestrian.child': 'Pedestrian',
-                              'vehicle.bicycle': 'Cyclist',
-                              'vehicle.car': 'Car',
-                              'vehicle.motorcycle': 'Cyclist',
-                              'vehicle.truck': 'Car'
-                              },
-                 'to_waymo': {'human.pedestrian.adult': 'PEDESTRIAN',
-                              'human.pedestrian.child': 'PEDESTRIAN',
-                              'vehicle.bicycle': 'CYCLIST',
-                              'vehicle.car': 'VEHICLE',
-                              'vehicle.motorcycle': 'CYCLIST',
-                              'vehicle.truck': 'VEHICLE'
-                              },
-                 'to_udacity': {'human.pedestrian.adult': 'Pedestrian',
-                                'human.pedestrian.child': 'Pedestrian',
-                                'vehicle.car': 'Car',
-                                'vehicle.truck': 'Truck'
-                                },
-                 'to_kakao': {
-                 }
-                 }
+nuscenes_dict = {
+    'to_kitti': {
+        'animal': 'DontCare',
+        'human.pedestrian.adult': 'Pedestrian',
+        'human.pedestrian.child': 'Pedestrian',
+        'human.pedestrian.construction_worker': 'Pedestrian',
+        'human.pedestrian.personal_mobility': 'DontCare',
+        'human.pedestrian.police_officer': 'Pedestrian',
+        'human.pedestrian.stroller': 'Misc',
+        'human.pedestrian.wheelchair': 'Misc',
+        'movable_object.barrier': 'Misc',
+        'movable_object.debris': 'Misc',
+        'movable_object.pushable_pullable': 'Misc',
+        'movable_object.trafficcone': 'Misc',
+        'static_object.bicycle_rack': 'Misc',
+        'vehicle.bicycle': 'Cyclist',
+        'vehicle.bus.bendy': 'Car',
+        'vehicle.bus.rigid': 'Car',
+        'vehicle.car': 'Car',
+        'vehicle.construction': 'Misc',
+        'vehicle.emergency.ambulance': 'Car',
+        'vehicle.emergency.police': 'Car',
+        'vehicle.motorcycle': 'Cyclist',
+        'vehicle.trailer': 'Misc',
+        'vehicle.truck': 'Car'
+    },
+    'to_waymo': {
+        'animal': 'UNKNOWN',
+        'human.pedestrian.adult': 'PEDESTRIAN',
+        'human.pedestrian.child': 'PEDESTRIAN',
+        'human.pedestrian.construction_worker': 'PEDESTRIAN',
+        'human.pedestrian.personal_mobility': 'DontCare',
+        'human.pedestrian.police_officer': 'PEDESTRIAN',
+        'human.pedestrian.stroller': 'UNKNOWN',
+        'human.pedestrian.wheelchair': 'UNKNOWN',
+        'movable_object.barrier': 'UNKNOWN',
+        'movable_object.debris': 'UNKNOWN',
+        'movable_object.pushable_pullable': 'UNKNOWN',
+        'movable_object.trafficcone': 'UNKNOWN',
+        'static_object.bicycle_rack': 'UNKNOWN',
+        'vehicle.bicycle': 'CYCLIST',
+        'vehicle.bus.bendy': 'VEHICLE',
+        'vehicle.bus.rigid': 'VEHICLE',
+        'vehicle.car': 'VEHICLE',
+        'vehicle.construction': 'UNKNOWN',
+        'vehicle.emergency.ambulance': 'VEHICLE',
+        'vehicle.emergency.police': 'VEHICLE',
+        'vehicle.motorcycle': 'CYCLIST',
+        'vehicle.trailer': 'UNKNOWN',
+        'vehicle.truck': 'VEHICLE'
+    },
+    'to_udacity': {
+        'animal': 'UNKNOWN',
+        'human.pedestrian.adult': 'Pedestrian',
+        'human.pedestrian.child': 'Pedestrian',
+        'human.pedestrian.construction_worker': 'Pedestrian',
+        'human.pedestrian.personal_mobility': 'DontCare',
+        'human.pedestrian.police_officer': 'Pedestrian',
+        'human.pedestrian.stroller': None,
+        'human.pedestrian.wheelchair': None,
+        'movable_object.barrier': None,
+        'movable_object.debris': None,
+        'movable_object.pushable_pullable': None,
+        'movable_object.trafficcone': None,
+        'static_object.bicycle_rack': None,
+        'vehicle.bicycle': 'CYCLIST',
+        'vehicle.bus.bendy': 'VEHICLE',
+        'vehicle.bus.rigid': 'VEHICLE',
+        'vehicle.car': 'Car',
+        'vehicle.construction': None,
+        'vehicle.emergency.ambulance': 'Car',
+        'vehicle.emergency.police': 'Car',
+        'vehicle.motorcycle': 'CYCLIST',
+        'vehicle.trailer': None,
+        'vehicle.truck': 'Truck'
+    },
+    'to_kakao': {
+        'animal': 'dynamic_object.animal.ground_animal',
+        'human.pedestrian.adult': 'dynamic_object.human.pedestrian',
+        'human.pedestrian.child': None,
+        'human.pedestrian.construction_worker': 'dynamic_object.human.construction_worker',
+        'human.pedestrian.personal_mobility': None,
+        'human.pedestrian.police_officer': 'dynamic_object.human.police_officer',
+        'human.pedestrian.stroller': 'dynamic_object.human.stroller',
+        'human.pedestrian.wheelchair': 'dynamic_object.human.wheelchair',
+        'movable_object.barrier': 'movable_object.barrier',
+        'movable_object.debris': 'movable_object.debris',
+        'movable_object.pushable_pullable': None,
+        'movable_object.trafficcone': 'movable_object.traffic_cone',
+        'static_object.bicycle_rack': None,
+        'vehicle.bicycle': 'dynamic_object.vehicle.bicycle',
+        'vehicle.bus.bendy': 'dynamic_object.vehicle.bus',
+        'vehicle.bus.rigid': 'dynamic_object.vehicle.bus',
+        'vehicle.car': 'dynamic_object.vehicle.car',
+        'vehicle.construction': 'dynamic_object.vehicle.construction_vehicle',
+        'vehicle.emergency.ambulance': 'dynamic_object.vehicle.ambulance',
+        'vehicle.emergency.police': 'dynamic_object.vehicle.police_car',
+        'vehicle.motorcycle': 'dynamic_object.vehicle.motorcycle',
+        'vehicle.trailer': None,
+        'vehicle.truck': 'dynamic_object.vehicle.truck'
+    }
+}
 
-udacity_dict = {'to_kitti': {'Pedestrian': 'Pedestrian',
-                             'Car': 'Car',
-                             'Truck': 'Truck'
-                             },
-                'to_nuscenes': {'Pedestrian': 'human.pedestrian.adult',
-                                'Car': 'vehicle.car',
-                                'Truck': 'vehicle.truck'
-                                },
-                'to_waymo': {'Pedestrian': 'PEDESTRIAN',
-                             'Car': 'VEHICLE',
-                             'Truck': 'VEHICLE'
-                             },
-                'to_kakao': {
-                }
-                }
+udacity_dict = {
+    'to_kitti': {
+        'Pedestrian': 'Pedestrian',
+        'Car': 'Car',
+        'Truck': 'Truck'
+    },
+    'to_nuscenes': {
+        'Pedestrian': 'human.pedestrian.adult',
+        'Car': 'vehicle.car',
+        'Truck': 'vehicle.truck'
+    },
+    'to_waymo': {
+        'Pedestrian': 'PEDESTRIAN',
+        'Car': 'VEHICLE',
+        'Truck': 'VEHICLE'
+    },
+    'to_kakao': {
+        'Pedestrian': 'dynamic_object.human.pedestrian',
+        'Car': 'dynamic_object.vehicle.car',
+        'Truck': 'dynamic_object.vehicle.truck'
+    }
+}
 
 kakao_dict = {
     'to_kitti': {
+        'dynamic_object.vehicle.car': 'Car',
+        'dynamic_object.vehicle.truck': 'Truck',
+        'dynamic_object.vehicle.bus': 'Misc',
+        'dynamic_object.vehicle.police_car': 'Car',
+        'dynamic_object.vehicle.ambulance': 'Car',
+        'dynamic_object.vehicle.construction_vehicle': 'Misc',
+        'dynamic_object.vehicle.fire_truck': 'Misc',
+        'dynamic_object.vehicle.trailer': 'Misc',
+        'dynamic_object.vehicle.other_vehicle': 'Car',
+        'dynamic_object.vehicle.motorcycle': 'Cyclist',
+        'dynamic_object.vehicle.bicycle': 'Cyclist',
+        'dynamic_object.vehicle.personal_mobility': 'Misc',
+        'dynamic_object.human.pedestrian': 'Pedestrian',
+        'dynamic_object.human.police_officer': 'Pedestrian',
+        'dynamic_object.human.construction_worker': 'Pedestrian',
+        'dynamic_object.human.firefighter': 'Pedestrian',
+        'dynamic_object.human.stroller': 'Misc',
+        'dynamic_object.human.wheelchair': 'Misc',
+        'dynamic_object.animal.ground_animal': 'Misc',
+        'dynamic_object.animal.bird': 'Misc',
+        'movable_object.traffic_cone': 'Misc',
+        'movable_object.barrier': 'Misc',
+        'movable_object.debris': 'Misc'
     },
     'to_nuscenes': {
+        'dynamic_object.vehicle.car': 'vehicle.car',
+        'dynamic_object.vehicle.truck': 'vehicle.truck',
+        'dynamic_object.vehicle.bus': 'vehicle.bus.rigid',
+        'dynamic_object.vehicle.police_car': 'vehicle.emergency.police',
+        'dynamic_object.vehicle.ambulance': 'vehicle.emergency.ambulance',
+        'dynamic_object.vehicle.construction_vehicle': 'vehicle.construction',
+        'dynamic_object.vehicle.fire_truck': 'human.pedestrian.adult',
+        'dynamic_object.vehicle.trailer': 'vehicle.trailer',
+        'dynamic_object.vehicle.motorcycle': 'vehicle.motorcycle',
+        'dynamic_object.vehicle.bicycle': 'vehicle.bicycle',
+        'dynamic_object.vehicle.personal_mobility': 'human.pedestrian.personal_mobility',
+        'dynamic_object.human.pedestrian': 'human.pedestrian.adult',
+        'dynamic_object.human.police_officer': 'human.pedestrian.police_officer',
+        'dynamic_object.human.construction_worker': 'human.pedestrian.construction_worker',
+        'dynamic_object.human.stroller': 'human.pedestrian.stroller',
+        'dynamic_object.human.wheelchair': 'human.pedestrian.wheelchair',
+        'dynamic_object.animal.ground_animal': 'animal',
+        'movable_object.traffic_cone': 'movable_object.trafficcone',
+        'movable_object.barrier': 'movable_object.barrier',
+        'movable_object.debris': 'movable_object.debris'
     },
     'to_waymo': {
+        'dynamic_object.vehicle.car': 'VEHICLE',
+        'dynamic_object.vehicle.truck': 'VEHICLE',
+        'dynamic_object.vehicle.bus': 'VEHICLE',
+        'dynamic_object.vehicle.police_car': 'VEHICLE',
+        'dynamic_object.vehicle.ambulance': 'VEHICLE',
+        'dynamic_object.vehicle.construction_vehicle': 'VEHICLE',
+        'dynamic_object.vehicle.fire_truck': 'VEHICLE',
+        'dynamic_object.vehicle.trailer': 'UNKNOWN',
+        'dynamic_object.vehicle.other_vehicle': 'VEHICLE',
+        'dynamic_object.vehicle.motorcycle': 'CYCLIST',
+        'dynamic_object.vehicle.bicycle': 'CYCLIST',
+        'dynamic_object.vehicle.personal_mobility': 'UNKNOWN',
+        'dynamic_object.human.pedestrian': 'PEDESTRIAN',
+        'dynamic_object.human.police_officer': 'PEDESTRIAN',
+        'dynamic_object.human.construction_worker': 'PEDESTRIAN',
+        'dynamic_object.human.firefighter': 'PEDESTRIAN',
+        'dynamic_object.human.stroller': 'UNKNOWN',
+        'dynamic_object.human.wheelchair': 'UNKNOWN',
+        'dynamic_object.animal.ground_animal': 'UNKNOWN',
+        'dynamic_object.animal.bird': 'UNKNOWN',
+        'movable_object.traffic_cone': 'UNKNOWN',
+        'movable_object.barrier': 'UNKNOWN',
+        'movable_object.debris': 'UNKNOWN'
     },
     'to_udacity': {
+        'dynamic_object.vehicle.car': None,
+        'dynamic_object.vehicle.truck': 'Truck',
+        'dynamic_object.vehicle.bus': None,
+        'dynamic_object.vehicle.police_car': None,
+        'dynamic_object.vehicle.ambulance': None,
+        'dynamic_object.vehicle.construction_vehicle': None,
+        'dynamic_object.vehicle.fire_truck': None,
+        'dynamic_object.vehicle.trailer': None,
+        'dynamic_object.vehicle.other_vehicle': None,
+        'dynamic_object.vehicle.motorcycle': None,
+        'dynamic_object.vehicle.bicycle': None,
+        'dynamic_object.vehicle.personal_mobility': None,
+        'dynamic_object.human.pedestrian': 'Pedestrian',
+        'dynamic_object.human.police_officer': 'Pedestrian',
+        'dynamic_object.human.construction_worker': 'Pedestrian',
+        'dynamic_object.human.firefighter': 'Pedestrian',
+        'dynamic_object.human.stroller': None,
+        'dynamic_object.human.wheelchair': None,
+        'dynamic_object.animal.ground_animal': None,
+        'dynamic_object.animal.bird': None,
+        'movable_object.traffic_cone': None,
+        'movable_object.barrier': None,
+        'movable_object.debris': None
     }
 }
