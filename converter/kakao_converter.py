@@ -9,6 +9,8 @@ from dictionary.rotation_dictionary import cam_rot, lid_rot
 from scipy.spatial.transform import Rotation
 from utils.util import check_valid_mat
 
+from pyquaternion import Quaternion as Q
+
 
 class kakao_parser:
     def __init__(self,
@@ -121,9 +123,23 @@ class kakao:
                 sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
                 ego_pose_data = self.kakaodb.get('ego_pose', frame_data['ego_pose_uuid'])
 
-                # TODO: save sensor calibration data
                 # TODO: convert coordinates system
-                # TODO: save sensor raw data
+
+                with open(osp.join(self.dst_dir, 'calibration', sensor_data['type'], sensor_data['name'] + '.txt'),
+                          'r') as f:
+                    loc = list(map(float, sensor_data['translation']))
+                    rot = list(map(float, sensor_data['rotation']))
+                    intrinsic = sensor_data['intrinsic']['parameter']
+                    extrinsic = np.zeros((3, 4))
+                    extrinsic[:3, :3] = Q(*rot).rotation_matrix
+                    extrinsic[:, 3] = loc
+                    f.write(f'{sensor_data["name"]}_intrinsic : {intrinsic}\n')
+                    f.write(f'{sensor_data["name"]}_extrinsic : {extrinsic}\n')
+
+                f_name = f'{frame_data["file_name"]}.{frame["file_format"]}'
+                src_path = osp.join(self.src_dir, 'sensor', frame_data['name'], f_name)
+                dst_path = osp.join(self.dst_dir, frame_data['type'], frame_data['name'], f_name)
+                copyfile(src_path, dst_path)
 
                 if 'kitti' in self.dst_db_type:
                     cls = kakao_dict[f'to_kitti'][frame_annotation['category_name']]

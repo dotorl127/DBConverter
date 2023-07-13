@@ -2,10 +2,7 @@ import os
 import argparse
 import yaml
 
-from converter import kitti_converter
-from converter import waymo_converter
-from converter import nuscenes_converter
-from converter import udacity_converter
+from converter import kitti_converter, nuscenes_converter, waymo_converter, udacity_converter, kakao_converter
 
 
 class KetiDBconverter(object):
@@ -105,6 +102,8 @@ class KetiDBconverter(object):
             module = nuscenes_converter
         elif self.src_db_type == 'udacity':
             module = udacity_converter
+        elif self.src_db_type == 'kakao':
+            module = kakao_converter
         self.db = getattr(module, self.src_db_type)(self.src_path, self.tgt_path, self.tgt_db_type)
 
     def convert(self):
