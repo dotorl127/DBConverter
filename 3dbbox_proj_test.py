@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-dir_name = 'SIDE_LEFT'
+dir_name = 'FRONT'
 idx = 0
 # read img
 img = cv2.imread(f'/home/moon/DATASET/waymo2kitti/camera/{dir_name}/{idx:06d}.png')

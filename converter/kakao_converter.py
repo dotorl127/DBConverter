@@ -153,7 +153,7 @@ class kakao:
         print(f'Convert kakao to {self.dst_db_type} Dataset.')
 
         camera_names = ['camera[00]', 'camera[01]', 'camera[02]', 'camera[03]', 'camera[04]', 'camera[05]']
-        # TODO: modify calibration data output
+        # TODO: convert calibration coordinates by referring to the kakao lidar and camera coordinate systems
         for sensor in self.kakaodb.sensor:
             intrinsic = None
             if sensor['intrinsic']['parameter'] is not None:
@@ -217,6 +217,7 @@ class kakao:
                         if bbox == (0, 0, 0, 0):
                             continue
 
+                        # TODO: convert label coordinates by referring to the kakao lidar and camera coordinate systems
                         x, y, z = np.dot(self.lid_rot, np.array([x, y, z, 1]).T)
                         cls = kakao_dict[f'to_{self.dst_db_type}'][frame_annotation['category_name']]
                         with open(f'{osp.join(self.dst_dir, "label", "lidar[00]", {frame_data["file_name"]} + ".txt")}',
