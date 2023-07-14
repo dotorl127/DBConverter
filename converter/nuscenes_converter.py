@@ -259,11 +259,15 @@ class nuscenes:
                                                                          selected_anntokens=[sample_annotation_token])
                         box_lidar_nusc = box_lidar_nusc[0]
 
+                        x, y, z = box_lidar_nusc.center.tolist()
+                        w, l, h = box_lidar_nusc.wlh.tolist()
+                        rot, _, _ = box_lidar_nusc.orientation.yaw_pitch_roll
+
                         if self.dst_db_type == 'kitti':
                             truncated = 0.0
                             occluded = 0
-                            if detection_name is None:
-                                continue
+
+                            if detection_name is None: continue
 
                             box_cam_kitti = \
                                 KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
@@ -271,6 +275,8 @@ class nuscenes:
                                                               Quaternion(matrix=self.rt_mat_dict[cam_name][:3, :3]),
                                                               velo_to_cam_trans=
                                                               self.rt_mat_dict[cam_name][:3, 3], r0_rect=r0_rect)
+
+                            if box_cam_kitti.center[2] < 0: continue
 
                             cam_intrinsic = np.zeros((3, 4))
                             cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
@@ -280,6 +286,11 @@ class nuscenes:
                             if bbox_2d == (0, 0, 0, 0) and cam_name != 'CAM_FRONT':
                                 continue
 
+                            with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
+                                f.write(f'{detection_name}, 0, 0, -10, '
+                                        f'{bbox_2d[0]}, {bbox_2d[1]}, {bbox_2d[2]}, {bbox_2d[3]}'
+                                        f'{h}, {w}, {l}, {x}, {y}, {z}, {rot}')
+
                             box_cam_kitti = \
                                 KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
                                                               velo_to_cam_rot=
@@ -288,7 +299,7 @@ class nuscenes:
                                                               np.zeros(3), r0_rect=r0_rect)
 
                             output = self.box_to_string(name=detection_name, box=box_cam_kitti, bbox_2d=bbox_2d,
-                                                        truncation=truncated, occlusion=occluded)
+                                                        truncation=truncated, occlusion=occluded) + '\n'
                         else:
                             box_cam_kitti = \
                                 KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
@@ -296,6 +307,8 @@ class nuscenes:
                                                               Quaternion(matrix=self.rt_mat_dict[cam_name][:3, :3]),
                                                               velo_to_cam_trans=
                                                               self.rt_mat_dict[cam_name][:3, 3], r0_rect=r0_rect)
+
+                            if box_cam_kitti.center[1] < 0: continue
 
                             cam_intrinsic = np.zeros((3, 4))
                             cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
@@ -314,19 +327,22 @@ class nuscenes:
 
                             w = int(bbox_2d[2] - bbox_2d[0])
                             h = int(bbox_2d[3] - bbox_2d[1])
-                            cx = int(bbox_2d[0] + (w // 2))
-                            cy = int(bbox_2d[1] + (h // 2))
+                            cx = int(bbox_2d[0] + (w / 2))
+                            cy = int(bbox_2d[1] + (h / 2))
 
                             if self.dst_db_type == 'waymo':
                                 output = f'{cx}, {cy}, {w}, {h}, 0, 0, {detection_name}, -1, ' \
                                          f'{box_lidar_nusc.center[0]}, {box_lidar_nusc.center[1]}, {box_lidar_nusc.center[2]}, ' \
-                                         f'{box_lidar_nusc.wlh[0]}, {box_lidar_nusc.wlh[1]}, {box_lidar_nusc.wlh[2]}, {yaw}'
+                                         f'{box_lidar_nusc.wlh[0]}, {box_lidar_nusc.wlh[1]}, {box_lidar_nusc.wlh[2]}, {yaw}\n'
+
+                                with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
+                                    f.write(output)
                             elif self.dst_db_type == 'udacity':
                                 x1, y1, x2, y2 = map(int, bbox_2d)
-                                output = f'{x1}, {y1}, {x2}, {y2}, {detection_name}'
+                                output = f'{x1}, {y1}, {x2}, {y2}, {detection_name}\n'
 
                         # Write to disk.
-                        label_file.write(output + '\n')
+                        label_file.write(output)
 
             filename_lid_full = sd_record_lid['filename']
 

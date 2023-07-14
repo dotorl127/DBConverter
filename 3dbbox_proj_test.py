@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-dir_name = 'FRONT' # SIDE_LEFT
+dir_name = 'SIDE_LEFT'
 idx = 0
 # read img
 img = cv2.imread(f'/home/moon/DATASET/waymo2kitti/camera/{dir_name}/{idx:06d}.png')
@@ -58,10 +58,6 @@ for c in cuboid:
 
 # visualization
 for cls, coor in zip(cls, af_bbox):
-    # x1, y1, x2, y2 = list(map(int, coor))
-    # cv2.putText(img, cls, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-    # cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
     coor = coor.astype(np.int32)
     for k in range(0, 4):
         i, j = k, (k + 1) % 4
