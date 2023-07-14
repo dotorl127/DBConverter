@@ -152,10 +152,13 @@ class kakao:
     def convert(self):
         print(f'Convert kakao to {self.dst_db_type} Dataset.')
 
+        camera_names = ['camera[00]', 'camera[01]', 'camera[02]', 'camera[03]', 'camera[04]', 'camera[05]']
         # TODO: modify calibration data output
         for sensor in self.kakaodb.sensor:
-            intrinsic = np.eye(4)
-            intrinsic[:3, :3] = sensor['intrinsic']['parameter']
+            intrinsic = None
+            if sensor['intrinsic']['parameter'] is not None:
+                intrinsic = np.eye(4)
+                intrinsic[:3, :3] = sensor['intrinsic']['parameter']
 
             loc = list(map(float, sensor['translation']))
             rot = list(map(float, sensor['rotation']))
@@ -167,12 +170,10 @@ class kakao:
             self.calib_dict[sensor['name']]['intrinsic'] = intrinsic
             self.calib_dict[sensor['name']]['extrinsic'] = extrinsic
 
-        for sensor in self.kakaodb.sensor:
-            if 'lidar' not in sensor['name']:
-                self.lid2cam[sensor['name']] = {}
-                self.lid2cam[sensor['name']]['extrinsic'] = \
-                    extrinsic @ np.linalg.inv(self.calib_dict['lidar[00]']['extrinsic']).T
-                self.lid2cam[sensor['name']]['intrinsic'] = intrinsic
+            with open(f'{self.dst_dir}/calib/{sensor["name"]}/{sensor["name"]}.txt', 'w') as f:
+                if intrinsic is not None:
+                    f.write(f'{sensor["name"]}_intrinsic : {", ".join(list(map(str, intrinsic.flatten())))}')
+                f.write(f'{sensor["name"]}_extrinsic : {", ".join(list(map(str, extrinsic.flatten())))}')
 
         for frame in tqdm(self.kakaodb.frame):
             for anno_uuid in frame['anns']:
@@ -190,25 +191,14 @@ class kakao:
                     _, _, yaw = quat2euler(*frame_annotation['geometry']['orientation'])
                     rot = Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix
 
-                    if self.dst_db_type == 'kitti':
-                        z -= h / 2
-                        yaw -= np.pi / 2
-
-                    # project bounding box to the virtual reference frame
-                    if self.dst_db_type == 'kitti':
-                        x, y, z, _ = self.cam_rot @ np.array([x, y, z, 1]).T
-                    else:
-                        x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
-
-                    for k, v in self.lid2cam.items():
-                        cam_xyz = v['extrinsic'] @ np.array([x, y, z, 1]).T
-                        corners = self.get_corners(*cam_xyz, w, l, h, rot)
+                    for camera_name in camera_names:
+                        rt_mat = self.calib_dict[camera_name]['extrinsic'] @ np.linalg.inv(
+                            self.calib_dict['lidar[00]']['extrinsic'])
+                        cam_x, cam_y, cam_z = np.dot(rt_mat, np.array([x, y, z, 1]).T)
+                        corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h, rot)
                         proj_mat = np.eye(4)
-                        proj_mat[:3, :3] = v['intrinsic']
+                        proj_mat[:3, :3] = self.calib_dict[camera_name]['intrinsic']
                         imcorners = self.get_projected_corners(corners, proj_mat)[:2]
-                        print(k)
-                        print(x, y, z, w, h, l, yaw)
-                        print(imcorners)
                         bbox = (np.min(imcorners[0]), np.min(imcorners[1]), np.max(imcorners[0]), np.max(imcorners[1]))
 
                         # Crop bbox to prevent it extending outside image.
@@ -227,28 +217,44 @@ class kakao:
                         if bbox == (0, 0, 0, 0):
                             continue
 
-                        with open(
-                                f'{osp.join(self.dst_dir, "label", k, frame_data["file_name"] + ".txt")}',
-                                'a') as f:
-                            if self.dst_db_type == 'kitti' and yaw != 'None':
-                                cls = kakao_dict[f'to_kitti'][frame_annotation['category_name']]
-                                f.write(
-                                    f'{cls}, 0, 0, -10, {x1}, {y1}, {x2}, {y2}, {x}, {y}, {z}, {h}, {w}, {l}, {yaw}\n')
+                        x, y, z = np.dot(self.lid_rot, np.array([x, y, z, 1]).T)
+                        cls = kakao_dict[f'to_{self.dst_db_type}'][frame_annotation['category_name']]
+                        with open(f'{osp.join(self.dst_dir, "label", "lidar[00]", {frame_data["file_name"]} + ".txt")}',
+                                  'a') as f:
+                            if self.dst_db_type == 'kitti':
+                                f.write(f'{cls}, 0, 0, -10, '
+                                        f'{x1}, {y1}, {x2}, {y2}, {x}, {y}, {z}, {h}, {w}, {l}, {yaw}\n')
                             elif self.dst_db_type == 'waymo':
-                                cls = kakao_dict[f'to_waymo'][frame_annotation['category_name']]
-                                w = x2 - x1
-                                h = y2 - y1
+                                img_w = x2 - x1
+                                img_h = y2 - y1
                                 cx = x1 + w / 2
                                 cy = y1 + h / 2
-                                f.write(f'{cx}, {cy}, {w}, {h}, 0, 0, {cls}, -1, '
+                                f.write(f'{cx}, {cy}, {img_w}, {img_h}, 0, 0, {cls}, -1, '
                                         f'{x}, {y}, {z}, {w}, {l}, {h}, {yaw}\n')
                             elif self.dst_db_type == 'nuscenes':
-                                cls = kakao_dict[f'to_nuscenes'][frame_annotation['category_name']]
                                 rot = Rotation.from_euler('xyz', [0, 0, rot])
                                 rot_quat = rot.as_quat()
                                 f.write(f'{cls}, {x}, {y}, {z}, {w}, {h}, {l}, '
                                         f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, '
                                         f'0, 0, {x1}, {y1}, {x2}, {y2}\n')
                             elif self.dst_db_type == 'udacity':
-                                cls = kakao_dict[f'to_udacity'][frame_annotation['category_name']]
+                                f.write(f'{x1}, {y1}, {x2}, {y2}, {cls}\n')
+
+                        if z < 0: continue  # if z is forward in camera coordinates
+
+                        with open(f'{osp.join(self.dst_dir, "label", camera_name, frame_data["file_name"] + ".txt")}',
+                                  'a') as f:
+                            if self.dst_db_type == 'kitti':
+                                cam_x, cam_y, cam_z = np.dot(self.cam_rot, np.array([cam_x, cam_y, cam_z, 1]).T)
+                                f.write(f'{cls}, 0, 0, -10, '
+                                        f'{x1}, {y1}, {x2}, {y2}, {h}, {w}, {l}, '
+                                        f'{cam_x}, {cam_y}, {cam_z}, {yaw}\n')
+                            elif self.dst_db_type == 'waymo':
+                                f.write(f'{cx}, {cy}, {w}, {h}, 0, 0, {cls}, -1, '
+                                        f'{x}, {y}, {z}, {w}, {l}, {h}, {yaw}\n')
+                            elif self.dst_db_type == 'nuscenes':
+                                f.write(f'{cls}, {x}, {y}, {z}, {w}, {h}, {l}, '
+                                        f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, '
+                                        f'0, 0, {x1}, {y1}, {x2}, {y2}\n')
+                            elif self.dst_db_type == 'udacity':
                                 f.write(f'{x1}, {y1}, {x2}, {y2}, {cls}\n')
