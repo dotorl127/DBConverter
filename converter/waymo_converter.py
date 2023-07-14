@@ -4,6 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from glob import glob
+from pyquaternion import Quaternion as Q
 
 from dictionary.class_dictionary import waymo_dict
 from dictionary.rotation_dictionary import cam_rot, lid_rot
@@ -37,6 +38,7 @@ class waymo:
         self.image = None
         self.labels = []
         self.points = None
+        self.cam_rot_dict = {}
         self.cam_rot = cam_rot['waymo'][dst_db_type]
         self.cam_rot = check_valid_mat(self.cam_rot)
         self.lid_rot = lid_rot['waymo'][dst_db_type]
@@ -62,29 +64,26 @@ class waymo:
 
         for lidar in frame.context.laser_calibrations:
             if lidar.name == 1:
-                lid_extrinsic = self.lid_rot @ np.array(lidar.extrinsic.transform).reshape(4, 4)
+                lid_extrinsic = np.array(lidar.extrinsic.transform).reshape(4, 4)
                 break
             else:
                 continue
 
         for camera in frame.context.camera_calibrations:
-            name = 1
-            bounding_box = (0, 0, 0, 0)
-
             T_cam_to_vehicle = np.array(camera.extrinsic.transform).reshape(4, 4)
 
-            cam_intrinsic = np.eye(3)
+            cam_intrinsic = np.zeros((3, 4))
             cam_intrinsic[0, 0] = camera.intrinsic[0]
             cam_intrinsic[1, 1] = camera.intrinsic[1]
             cam_intrinsic[0, 2] = camera.intrinsic[2]
             cam_intrinsic[1, 2] = camera.intrinsic[3]
             cam_intrinsic[2, 2] = 1
-            cam_intrinsic = cam_intrinsic.reshape(3, 3)
 
             with open(f'{self.dst_dir}calib/{self.int_to_cam_name[camera.name]}/{idx:06d}.txt', 'w') as f:
                 if self.dst_db_type == 'kitti':
-                    Tr_velo_to_cam = self.cam_rot @ np.linalg.inv(T_cam_to_vehicle) @ lid_extrinsic
-                    Tr_imu_to_velo = self.lid_rot @ np.linalg.inv(T_cam_to_vehicle)
+                    Tr_velo_to_cam = self.cam_rot @ np.linalg.inv(T_cam_to_vehicle)
+                    self.cam_rot_dict[camera.name] = Tr_velo_to_cam
+                    Tr_imu_to_velo = self.lid_rot @ np.linalg.inv(lid_extrinsic)
 
                     line = ', '.join(map(str, cam_intrinsic.reshape(-1).tolist())) + '\n'
                     f.write(f'P2: {line}')
@@ -260,61 +259,67 @@ class waymo:
 
             class_name = self.int_to_class_name[obj.type]
 
-            height = obj.box.height  # up/down
-            width = obj.box.width  # left/right
-            length = obj.box.length  # front/back
-
             x = obj.box.center_x
             y = obj.box.center_y
             z = obj.box.center_z
+            height = obj.box.height  # up/down
+            width = obj.box.width  # left/right
+            length = obj.box.length  # front/back
             rot = obj.box.heading
+
             if self.dst_db_type == 'kitti':
                 z -= height / 2
                 rot -= np.pi / 2
 
-            # project bounding box to the virtual reference frame
-            if self.dst_db_type == 'kitti':
-                x, y, z, _ = self.cam_rot @ np.array([x, y, z, 1]).T
-            else:
+            if self.dst_db_type != 'udacity':
+                line = None
                 x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
-            line = ''
-            rot_quat = 0
+                if self.dst_db_type == 'kitti':
+                    rot -= np.pi / 2
+                    line = f'{class_name}, 0, 0, -10, ' \
+                           f'{int(bounding_box[0])}, {int(bounding_box[1])}, ' \
+                           f'{int(bounding_box[2])}, {int(bounding_box[3])}, ' \
+                           f'{height}, {width}, {length}, {x}, {y}, {z}, {rot}\n'
+                else:
+                    x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
+                    if self.dst_db_type == 'nuscenes':
+                        rot = Rotation.from_euler('xyz', [0, 0, rot])
+                        rot_quat = rot.as_quat()
+                        line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
+                               f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
+                               f'0, 0, {int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}\n'
+
+                with open(f'{self.dst_dir}label/{self.int_to_lid_name[1]}/{idx:06d}.txt', 'a') as f:
+                    f.write(line)
+
+            rot_ = Q(matrix=self.cam_rot_dict[int(name)][:3, :3])
+            yaw, pitch, roll = rot_.yaw_pitch_roll
+            rot -= yaw
+
+            line = None
             if self.dst_db_type == 'kitti':
-                line = f'{class_name}, 0, 0, -10, ' \
-                       f'{int(bounding_box[0])}, {int(bounding_box[1])}, ' \
-                       f'{int(bounding_box[2])}, {int(bounding_box[3])}, ' \
-                       f'{height}, {width}, {length}, {x}, {y}, {z}, {rot}\n'
+                x, y, z, _ = self.cam_rot_dict[int(name)] @ np.array([x, y, z, 1]).T
+                if z > 0:
+                    line = f'{class_name}, 0, 0, -10, ' \
+                           f'{int(bounding_box[0])}, {int(bounding_box[1])}, ' \
+                           f'{int(bounding_box[2])}, {int(bounding_box[3])}, ' \
+                           f'{height}, {width}, {length}, {x}, {y}, {z}, {rot}\n'
             else:
                 if self.dst_db_type == 'nuscenes':
-                    rot = Rotation.from_euler('xyz', [0, 0, rot])
-                    rot_quat = rot.as_quat()
-                    line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
-                           f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
-                           f'0, 0, {int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}\n'
+                    if x > 0:
+                        rot = Rotation.from_euler('xyz', [0, 0, rot])
+                        rot_quat = rot.as_quat()
+                        line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
+                               f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
+                               f'0, 0, {int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}\n'
                 elif self.dst_db_type == 'udacity' and bounding_box != (0, 0, 0, 0):
                     line = f'{int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}, {class_name}\n'
 
-            if name != 'FRONT':
-                # store the label
+            if line is not None:
                 with open(f'{self.dst_dir}label/{self.int_to_cam_name[int(name)]}/{idx:06d}.txt', 'a') as f:
                     f.write(line)
-
-            if self.dst_db_type == 'kitti':
-                line = f'{class_name}, 0, 0, -10, 0, 0, 0, 0, ' \
-                       f'{height}, {width}, {length}, {x}, {y}, {z}, {rot}\n'
-            elif self.dst_db_type == 'nuscenes':
-                line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
-                       f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
-                       f'0, 0, 0, 0, 0, 0\n'
-            elif self.dst_db_type == 'udacity':
-                line = ''
-
-            lines += line
-
-        with open(f'{self.dst_dir}label/FRONT/{idx:06d}.txt', 'a') as f:
-            f.write(lines)
 
         for filename in no_label_cam_name:
             with open(f'{self.dst_dir}label/{filename}/{idx:06d}.txt', 'a') as f:

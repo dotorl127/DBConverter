@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 from pyquaternion.quaternion import Quaternion as Q
+from dictionary.rotation_dictionary import *
 
 
 class bbox_2d:
@@ -47,7 +48,7 @@ def check_valid_mat(mat: np.ndarray) -> np.ndarray:
     return mat
 
 
-def parse_label(dataset_type: str, label: list):
+def parse_label(dataset_type: str, label: list, vis_type: str):
     label_2d = None
     label_3d = None
     label_cls = None
@@ -55,35 +56,62 @@ def parse_label(dataset_type: str, label: list):
     # label_2d : [left, top, rigth, bottom]
     # label_3d : [x, y, z, width, length, height, rot]
 
-    if dataset_type == 'kitti':
-        label_2d = [*list(map(int, label[4:8]))]
-        x, y, z = list(map(float, label[11:14]))
-        rot = np.linalg.inv(Q(axis=[1, 0, 0], angle=np.pi / 2).rotation_matrix @
-                            Q(axis=[0, 0, 1], angle=np.pi / 2).rotation_matrix)
-        rot = check_valid_mat(rot)
-        x, y, z, _ = rot @ np.array([x, y, z, 1])
-        label_3d = [x, y, z + float(label[8]) / 2,
-                    float(label[9]), float(label[10]), float(label[8]), float(label[14])]
-        label_cls = label[0]
-    elif dataset_type == 'waymo':
-        x1 = int(label[0]) - int(int(label[2]) / 2)
-        y1 = int(label[1]) - int(int(label[3]) / 2)
-        x2 = x1 + int(label[2])
-        y2 = y1 + int(label[3])
-        label_2d = [x1, y1, x2, y2]
-        label_3d = [*list(map(float, label[8:11])),
-                    float(label[11]), float(label[12]), float(label[13]), float(label[14])]
-        label_cls = label[6]
-    elif dataset_type == 'nuscenes':
-        label_2d = list(map(int, label[13:]))
-        if list(map(float, label[7:11])) != [0, 0, 0, 0]:
-            rot = Rotation.from_quat(list(map(float, label[7:11])))
-            rot_z = rot.as_euler('xyz')[-1]
-            label_3d = [*list(map(float, label[1:4])),
-                        float(label[4]), float(label[6]), float(label[5]), rot_z]
-        label_cls = label[0]
-    elif dataset_type == 'udacity':
-        label_2d = [*list(map(int, label[:-1]))]
-        label_cls = label[-1]
+    if vis_type == '2d':
+        if dataset_type == 'kitti':
+            label_2d = [*list(map(int, label[4:8]))]
+            x, y, z = list(map(float, label[11:14]))
+            rot = np.linalg.inv(Q(axis=[1, 0, 0], angle=np.pi / 2).rotation_matrix @
+                                Q(axis=[0, 0, 1], angle=np.pi / 2).rotation_matrix)
+            rot = check_valid_mat(rot)
+            x, y, z, _ = rot @ np.array([x, y, z, 1])
+            label_3d = [x, y, z,
+                        float(label[9]), float(label[10]), float(label[8]), float(label[14])]
+            label_cls = label[0]
+        elif dataset_type == 'waymo':
+            x1 = int(label[0]) - int(int(label[2]) / 2)
+            y1 = int(label[1]) - int(int(label[3]) / 2)
+            x2 = x1 + int(label[2])
+            y2 = y1 + int(label[3])
+            label_2d = [x1, y1, x2, y2]
+            label_3d = [*list(map(float, label[8:11])),
+                        float(label[11]), float(label[12]), float(label[13]), float(label[14])]
+            label_cls = label[6]
+        elif dataset_type == 'nuscenes':
+            label_2d = list(map(int, label[13:]))
+            if list(map(float, label[7:11])) != [0, 0, 0, 0]:
+                rot = Rotation.from_quat(list(map(float, label[7:11])))
+                rot_z = rot.as_euler('xyz')[-1]
+                label_3d = [*list(map(float, label[1:4])),
+                            float(label[4]), float(label[6]), float(label[5]), rot_z]
+            label_cls = label[0]
+        elif dataset_type == 'udacity':
+            label_2d = [*list(map(int, label[:-1]))]
+            label_cls = label[-1]
+    elif vis_type == '3d':
+        assert dataset_type != 'udacity', print('error: Udacity dataset 3d visualization dose not support')
+        if dataset_type == 'kitti':
+            label_2d = [*list(map(int, label[4:8]))]
+            x, y, z = list(map(float, label[11:14]))
+            z += float(label[8]) / 2
+            label_3d = [x, y, z,
+                        float(label[9]), float(label[10]), float(label[8]), float(label[14])]
+            label_cls = label[0]
+        elif dataset_type == 'waymo':
+            x1 = int(label[0]) - int(int(label[2]) / 2)
+            y1 = int(label[1]) - int(int(label[3]) / 2)
+            x2 = x1 + int(label[2])
+            y2 = y1 + int(label[3])
+            label_2d = [x1, y1, x2, y2]
+            label_3d = [*list(map(float, label[8:11])),
+                        float(label[11]), float(label[12]), float(label[13]), float(label[14])]
+            label_cls = label[6]
+        elif dataset_type == 'nuscenes':
+            label_2d = list(map(int, label[13:]))
+            if list(map(float, label[7:11])) != [0, 0, 0, 0]:
+                rot = Rotation.from_quat(list(map(float, label[7:11])))
+                rot_z = rot.as_euler('xyz')[-1]
+                label_3d = [*list(map(float, label[1:4])),
+                            float(label[4]), float(label[6]), float(label[5]), rot_z]
+            label_cls = label[0]
 
     return label_2d, label_3d, label_cls

@@ -31,7 +31,7 @@ lid_rot = {
 
 cam_rot = {
     'kitti': {
-        'waymo': Q(axis=[0, 1, 0], angle=np.pi / 2).rotation_matrix @
+        'waymo': Q(axis=[0, 1, 0], angle=-np.pi / 2).rotation_matrix @
                  Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix,
         'nuscenes': np.eye(3, dtype=np.float32),
         'udacity': np.eye(3, dtype=np.float32),

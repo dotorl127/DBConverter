@@ -41,19 +41,18 @@ if __name__ == '__main__':
             points = None
             labels_3d = None
             labels_cls = None
-            for camera_name in camera_names:
-                if camera_name in ['image_2', 'FRONT', 'CAM_FRONT', 'front_camera']:
+            for lid_name in lid_lst:
+                if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP']:
                     points = np.fromfile(f'{root_dir}lidar/{points_dir_name}/{filename}.bin',
                                          dtype=np.float32).reshape(-1, 4)
-                    with open(f'{root_dir}label/{camera_name}/{filename}.txt', 'r') as f:
+                    with open(f'{root_dir}label/{lid_name}/{filename}.txt', 'r') as f:
                         labels_3d = []
                         labels_cls = []
                         lines = f.readlines()
                         for line in lines:
                             label = line.strip().split(', ')
-                            # label 3d format is [class_name, x, y, z, width, height, length, rotation_z]
-                            _, label_3d, label_cls = util.parse_label(args.dataset_type, label)
-
+                            # label 3d format is [class_name, x, y, z, width, length, height, rotation_z]
+                            _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
                             labels_3d.append(label_3d)
                             labels_cls.append(label_cls)
 
@@ -77,7 +76,7 @@ if __name__ == '__main__':
                     for line in lines:
                         label = line.strip().split(', ')
                         # label 2d format is [x1, y1, x2, y2]
-                        label_2d, _, cls = util.parse_label(args.dataset_type, label)
+                        label_2d, _, cls = util.parse_label(args.dataset_type, label, args.vis_type)
 
                         if label_2d == [0, 0, 0, 0] or cls == 'None':
                             continue
