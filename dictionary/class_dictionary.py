@@ -103,7 +103,7 @@ nuscenes_dict = {
         'human.pedestrian.adult': 'PEDESTRIAN',
         'human.pedestrian.child': 'PEDESTRIAN',
         'human.pedestrian.construction_worker': 'PEDESTRIAN',
-        'human.pedestrian.personal_mobility': 'DontCare',
+        'human.pedestrian.personal_mobility': 'UNKNOWN',
         'human.pedestrian.police_officer': 'PEDESTRIAN',
         'human.pedestrian.stroller': 'UNKNOWN',
         'human.pedestrian.wheelchair': 'UNKNOWN',

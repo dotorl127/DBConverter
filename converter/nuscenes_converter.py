@@ -124,7 +124,7 @@ class nuscenes:
         idx = 0
 
         sample_tokens = self._split_to_samples(self.split_logs)
-        sample_tokens = sample_tokens[:100]
+        sample_tokens = sample_tokens
 
         r0_rect = Quaternion(axis=[1, 0, 0], angle=0)  # Dummy values.
         imsize = (1600, 900)
@@ -172,24 +172,19 @@ class nuscenes:
                 ego_to_cam = transform_matrix(self.calib_dict[cam_name]['translation'],
                                               Quaternion(self.calib_dict[cam_name]['rotation']),
                                               inverse=True)
-                velo_to_cam = ego_to_cam @ lid_to_ego
-                velo_to_cam_kitti = velo_to_cam @ np.linalg.inv(self.lid_rot)
+                velo_to_cam = np.dot(ego_to_cam, lid_to_ego)
+                velo_to_cam_kitti = np.dot(velo_to_cam, np.linalg.inv(self.lid_rot))
 
                 # Currently not used.
                 imu_to_velo_kitti = np.zeros((3, 4))  # Dummy values.
 
                 # Projection matrix.
-                cam_intrinsic = np.zeros((3, 4))
+                cam_intrinsic = np.zeros((4, 4))
                 cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']  # Cameras are always rectified.
 
                 # Create KITTI style transforms.
                 velo_to_cam_rot = velo_to_cam_kitti[:3, :3]
                 velo_to_cam_trans = velo_to_cam_kitti[:3, 3]
-
-                if cam_name == 'CAM_FRONT':
-                    # Check that the rotation has the same format as in KITTI.
-                    assert (velo_to_cam_rot.round(0) == np.array([[0, -1, 0], [0, 0, -1], [1, 0, 0]])).all()
-                    assert (velo_to_cam_trans[1:3] < 0).all()
 
                 self.rt_mat_dict[cam_name] = velo_to_cam_kitti
 
@@ -210,7 +205,7 @@ class nuscenes:
                     # Create calibration file.
                     kitti_transforms = dict()
                     kitti_transforms['P2'] = cam_intrinsic  # Left camera transform.
-                    kitti_transforms['R0_rect'] = np.eye(3)  # Cameras are already rectified.
+                    kitti_transforms['R0_rect'] = r0_rect.rotation_matrix  # Cameras are already rectified.
                     kitti_transforms['Tr_velo_to_cam'] = np.hstack((velo_to_cam_rot, velo_to_cam_trans.reshape(3, 1)))
                     kitti_transforms['Tr_imu_to_velo'] = imu_to_velo_kitti
 
@@ -262,21 +257,30 @@ class nuscenes:
                         x, y, z = box_lidar_nusc.center.tolist()
                         w, l, h = box_lidar_nusc.wlh.tolist()
                         rot, _, _ = box_lidar_nusc.orientation.yaw_pitch_roll
+                        x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
-                        if self.dst_db_type == 'kitti':
+                        if 'kitti' in self.dst_db_type:
                             truncated = 0.0
                             occluded = 0
 
                             if detection_name is None: continue
+
+                            if 'like' in self.dst_db_type:
+                                with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
+                                    f.write(f'{detection_name}, 0, 0, -10, '
+                                            f'-1, -1, -1, -1, '
+                                            f'{h}, {w}, {l}, {x}, {y}, {z}, {rot}\n')
 
                             box_cam_kitti = \
                                 KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
                                                               velo_to_cam_rot=
                                                               Quaternion(matrix=self.rt_mat_dict[cam_name][:3, :3]),
                                                               velo_to_cam_trans=
-                                                              self.rt_mat_dict[cam_name][:3, 3], r0_rect=r0_rect)
+                                                              self.rt_mat_dict[cam_name][:3, 3],
+                                                              r0_rect=r0_rect)
 
-                            if box_cam_kitti.center[2] < 0: continue
+                            if box_cam_kitti.center[2] < 0:
+                                continue
 
                             cam_intrinsic = np.zeros((3, 4))
                             cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
@@ -286,20 +290,13 @@ class nuscenes:
                             if bbox_2d == (0, 0, 0, 0) and cam_name != 'CAM_FRONT':
                                 continue
 
-                            with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
-                                f.write(f'{detection_name}, 0, 0, -10, '
-                                        f'{bbox_2d[0]}, {bbox_2d[1]}, {bbox_2d[2]}, {bbox_2d[3]}'
-                                        f'{h}, {w}, {l}, {x}, {y}, {z}, {rot}')
-
-                            box_cam_kitti = \
-                                KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
-                                                              velo_to_cam_rot=
-                                                              Quaternion(matrix=self.rt_mat_dict['CAM_FRONT'][:3, :3]),
-                                                              velo_to_cam_trans=
-                                                              np.zeros(3), r0_rect=r0_rect)
-
-                            output = self.box_to_string(name=detection_name, box=box_cam_kitti, bbox_2d=bbox_2d,
-                                                        truncation=truncated, occlusion=occluded) + '\n'
+                            v = np.dot(box_cam_kitti.rotation_matrix, np.array([1, 0, 0]))
+                            w, l, h = box_cam_kitti.wlh
+                            x, y, z = box_cam_kitti.center
+                            yaw = -np.arctan2(v[2], v[0])
+                            output = f'{detection_name}, -1, -1, -10, ' \
+                                     f'{bbox_2d[0]:.4f}, {bbox_2d[1]:.4f}, {bbox_2d[2]:.4f}, {bbox_2d[3]:.4f}, ' \
+                                     f'{h:.4f}, {w:.4f}, {l:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {yaw:.4f}\n'
                         else:
                             box_cam_kitti = \
                                 KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
@@ -331,15 +328,19 @@ class nuscenes:
                             cy = int(bbox_2d[1] + (h / 2))
 
                             if self.dst_db_type == 'waymo':
-                                output = f'{cx}, {cy}, {w}, {h}, 0, 0, {detection_name}, -1, ' \
-                                         f'{box_lidar_nusc.center[0]}, {box_lidar_nusc.center[1]}, {box_lidar_nusc.center[2]}, ' \
-                                         f'{box_lidar_nusc.wlh[0]}, {box_lidar_nusc.wlh[1]}, {box_lidar_nusc.wlh[2]}, {yaw}\n'
+                                output = f'-1, -1, -1, -1, 0, 0, {detection_name}, -1, ' \
+                                         f'{box_lidar_nusc.center[0]:.4f}, {box_lidar_nusc.center[1]:.4f}, {box_lidar_nusc.center[2]:.4f}, ' \
+                                         f'{box_lidar_nusc.wlh[0]:.4f}, {box_lidar_nusc.wlh[1]:.4f}, {box_lidar_nusc.wlh[2]:.4f}, {yaw:.4f}\n'
 
                                 with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
                                     f.write(output)
+
+                                output = f'{cx:.4f}, {cy:.4f}, {w:.4f}, {h:.4f}, 0, 0, {detection_name}, -1, ' \
+                                         f'{box_lidar_nusc.center[0]:.4f}, {box_lidar_nusc.center[1]:.4f}, {box_lidar_nusc.center[2]:.4f}, ' \
+                                         f'{box_lidar_nusc.wlh[0]:.4f}, {box_lidar_nusc.wlh[1]:.4f}, {box_lidar_nusc.wlh[2]:.4f}, {yaw:.4f}\n'
                             elif self.dst_db_type == 'udacity':
                                 x1, y1, x2, y2 = map(int, bbox_2d)
-                                output = f'{x1}, {y1}, {x2}, {y2}, {detection_name}\n'
+                                output = f'{x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f}, {detection_name}\n'
 
                         # Write to disk.
                         label_file.write(output)

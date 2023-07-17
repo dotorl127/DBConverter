@@ -58,7 +58,7 @@ def parse_label(dataset_type: str, label: list, vis_type: str):
 
     if vis_type == '2d':
         if dataset_type == 'kitti':
-            label_2d = [*list(map(int, label[4:8]))]
+            label_2d = [*list(map(float, label[4:8]))]
             x, y, z = list(map(float, label[11:14]))
             rot = np.linalg.inv(Q(axis=[1, 0, 0], angle=np.pi / 2).rotation_matrix @
                                 Q(axis=[0, 0, 1], angle=np.pi / 2).rotation_matrix)
@@ -90,7 +90,7 @@ def parse_label(dataset_type: str, label: list, vis_type: str):
     elif vis_type == '3d':
         assert dataset_type != 'udacity', print('error: Udacity dataset 3d visualization dose not support')
         if dataset_type == 'kitti':
-            label_2d = [*list(map(int, label[4:8]))]
+            label_2d = [*list(map(float, label[4:8]))]
             x, y, z = list(map(float, label[11:14]))
             z += float(label[8]) / 2
             label_3d = [x, y, z,

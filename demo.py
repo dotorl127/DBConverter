@@ -52,9 +52,10 @@ if __name__ == '__main__':
                         for line in lines:
                             label = line.strip().split(', ')
                             # label 3d format is [class_name, x, y, z, width, length, height, rotation_z]
-                            _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
-                            labels_3d.append(label_3d)
-                            labels_cls.append(label_cls)
+                            if label[0] != 'Misc':
+                                _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
+                                labels_3d.append(label_3d)
+                                labels_cls.append(label_cls)
 
             V.visualization(points, labels_3d, labels_cls)
             mlab.show(stop=True)

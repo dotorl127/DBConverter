@@ -329,7 +329,7 @@ class waymo:
         print(f'Convert waymo to {self.dst_db_type} Dataset.')
 
         tfrecord_pathnames = sorted(glob(join(self.src_dir, '*.tfrecord')))
-        pathname = tfrecord_pathnames[0]
+        pathname = tfrecord_pathnames
         dataset = tf.data.TFRecordDataset(pathname, compression_type='')
 
         cnt = 0
