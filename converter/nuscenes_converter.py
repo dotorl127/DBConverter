@@ -201,7 +201,7 @@ class nuscenes:
                     im = Image.open(src_im_path)
                     im.save(dst_im_path, "PNG")
 
-                if self.dst_db_type == 'kitti':
+                if 'kitti' in self.dst_db_type:
                     # Create calibration file.
                     kitti_transforms = dict()
                     kitti_transforms['P2'] = cam_intrinsic  # Left camera transform.
@@ -353,7 +353,8 @@ class nuscenes:
             dst_lid_path = f'{self.dst_dir}lidar/LIDAR_TOP/{idx:06d}.bin'
             assert not dst_lid_path.endswith('.pcd.bin')
             pcl = LidarPointCloud.from_file(src_lid_path)
-            pcl.rotate(self.lid_rot[:3, :3])  # In KITTI lidar frame.
+            if 'like' not in self.dst_db_type:
+                pcl.rotate(self.lid_rot[:3, :3])  # In KITTI lidar frame.
             with open(dst_lid_path, "w") as lid_file:
                 pcl.points.T.tofile(lid_file)
 

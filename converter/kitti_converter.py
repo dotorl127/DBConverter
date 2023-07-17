@@ -53,19 +53,19 @@ class kitti:
             h = int(label.label_2d.y2 - label.label_2d.y1)
             cnt_x = int(label.label_2d.x1 + w / 2)
             cnt_y = int(label.label_2d.y1 + h / 2)
-            return f'{cnt_x}, {cnt_y}, {w}, {h}, 0, 0, {type}, -1, ' \
-                   f'{label.label_3d.locs[0]}, {label.label_3d.locs[1]}, {label.label_3d.locs[2]}, ' \
-                   f'{label.label_3d.dims[0]}, {label.label_3d.dims[2]}, {label.label_3d.dims[1]}, ' \
-                   f'{label.label_3d.rot}, 0'
+            return f'{cnt_x:4f}, {cnt_y:4f}, {w:4f}, {h:4f}, 0, 0, {type}, -1, ' \
+                   f'{label.label_3d.locs[0]:4f}, {label.label_3d.locs[1]:4f}, {label.label_3d.locs[2]:4f}, ' \
+                   f'{label.label_3d.dims[0]:4f}, {label.label_3d.dims[2]:4f}, {label.label_3d.dims[1]:4f}, ' \
+                   f'{label.label_3d.rot:4f}, 0'
         elif dst_db_type == 'nuscenes':
             rot = Rotation.from_euler('xyz', [0, 0, label.label_3d.rot])
             rot_quat = rot.as_quat()
-            return f'{type}, {label.label_3d.locs[0]}, {label.label_3d.locs[1]}, {label.label_3d.locs[2]}, ' \
-                   f'{label.label_3d.dims[0]}, {label.label_3d.dims[1]}, {label.label_3d.dims[2]}, ' \
-                   f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, {-1}, {-1}, ' \
-                   f'{label.label_2d.x1}, {label.label_2d.y1}, {label.label_2d.x2}, {label.label_2d.y2}'
+            return f'{type}, {label.label_3d.locs[0]:4f}, {label.label_3d.locs[1]:4f}, {label.label_3d.locs[2]:4f}, ' \
+                   f'{label.label_3d.dims[0]:4f}, {label.label_3d.dims[1]:4f}, {label.label_3d.dims[2]:4f}, ' \
+                   f'{rot_quat[0]:4f}, {rot_quat[1]:4f}, {rot_quat[2]:4f}, {rot_quat[3]:4f}, {-1}, {-1}, ' \
+                   f'{label.label_2d.x1:4f}, {label.label_2d.y1:4f}, {label.label_2d.x2:4f}, {label.label_2d.y2:4f}'
         elif dst_db_type == 'udacity':
-            return f'{label.label_2d.x1}, {label.label_2d.y1}, {label.label_2d.x2}, {label.label_2d.y2}, {type}'
+            return f'{label.label_2d.x1:4f}, {label.label_2d.y1:4f}, {label.label_2d.x2:4f}, {label.label_2d.y2:4f}, {type}'
 
     def convert(self):
         print(f'Convert Kitti to {self.dst_db_type} Dataset.')

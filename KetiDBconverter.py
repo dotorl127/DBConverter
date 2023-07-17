@@ -82,13 +82,10 @@ class KetiDBconverter(object):
                 if not os.path.isdir(path):
                     os.makedirs(path)
             for lid_dir_name in self.lidar_dir_lst:
-                # for test TODO: delete and modify
-                path = self.tgt_path + 'calib/' + lid_dir_name
-                if not os.path.isdir(path):
-                    os.makedirs(path)
-                path = self.tgt_path + 'label/' + lid_dir_name
-                if not os.path.isdir(path):
-                    os.makedirs(path)
+                if self.tgt_db_type == 'kitti_like':
+                    path = self.tgt_path + 'label/' + lid_dir_name
+                    if not os.path.isdir(path):
+                        os.makedirs(path)
                 path = self.tgt_path + 'lidar/' + lid_dir_name
                 if not os.path.isdir(path):
                     os.makedirs(path)

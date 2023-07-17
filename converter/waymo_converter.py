@@ -214,7 +214,8 @@ class waymo:
 
         # concatenate x,y,z and intensity
         point_cloud = np.column_stack((points, intensity))
-        point_cloud = (self.lid_rot @ point_cloud.T).T
+        if 'like' not in self.dst_db_type:
+            point_cloud = (self.lid_rot @ point_cloud.T).T
         point_cloud[:, 3] = intensity
 
         # save
