@@ -267,7 +267,7 @@ class waymo:
             length = obj.box.length  # front/back
             rot = obj.box.heading
 
-            if self.dst_db_type == 'kitti':
+            if 'kitti' in self.dst_db_type:
                 z -= height / 2
                 rot -= np.pi / 2
 
@@ -275,21 +275,20 @@ class waymo:
                 line = None
                 x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
-                if self.dst_db_type == 'kitti':
+                if 'like' in self.dst_db_type:
                     rot -= np.pi / 2
                     line = f'{class_name}, 0, 0, -10, ' \
-                           f'{int(bounding_box[0])}, {int(bounding_box[1])}, ' \
-                           f'{int(bounding_box[2])}, {int(bounding_box[3])}, ' \
-                           f'{height}, {width}, {length}, {x}, {y}, {z}, {rot}\n'
+                           f'-1 -1 -1 -1, ' \
+                           f'{height:.4f}, {width:.4f}, {length:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}\n'
                 else:
                     x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
                     if self.dst_db_type == 'nuscenes':
                         rot = Rotation.from_euler('xyz', [0, 0, rot])
                         rot_quat = rot.as_quat()
-                        line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
-                               f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
-                               f'0, 0, {int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}\n'
+                        line = f'{class_name}, {x:.4f}, {y:.4f}, {z:.4f}, {width:.4f}, {height:.4f}, {length:.4f}, ' \
+                               f'{rot_quat[0]:.4f}, {rot_quat[1]:.4f}, {rot_quat[2]:.4f}, {rot_quat[3]:.4f}, ' \
+                               f'0, 0, {int(bounding_box[0]):.4f}, {int(bounding_box[1]):.4f}, {int(bounding_box[2]):.4f}, {int(bounding_box[3]):.4f}\n'
 
                 with open(f'{self.dst_dir}label/{self.int_to_lid_name[1]}/{idx:06d}.txt', 'a') as f:
                     f.write(line)
@@ -303,19 +302,19 @@ class waymo:
                 x, y, z, _ = self.cam_rot_dict[int(name)] @ np.array([x, y, z, 1]).T
                 if z > 0:
                     line = f'{class_name}, 0, 0, -10, ' \
-                           f'{int(bounding_box[0])}, {int(bounding_box[1])}, ' \
-                           f'{int(bounding_box[2])}, {int(bounding_box[3])}, ' \
-                           f'{height}, {width}, {length}, {x}, {y}, {z}, {rot}\n'
+                           f'{int(bounding_box[0]):.4f}, {int(bounding_box[1]):.4f}, ' \
+                           f'{int(bounding_box[2]):.4f}, {int(bounding_box[3]):.4f}, ' \
+                           f'{height:.4f}, {width:.4f}, {length:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}\n'
             else:
                 if self.dst_db_type == 'nuscenes':
                     if x > 0:
                         rot = Rotation.from_euler('xyz', [0, 0, rot])
                         rot_quat = rot.as_quat()
-                        line = f'{class_name}, {x}, {y}, {z}, {width}, {height}, {length}, ' \
-                               f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, ' \
-                               f'0, 0, {int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}\n'
+                        line = f'{class_name}, {x:.4f}, {y:.4f}, {z:.4f}, {width:.4f}, {height:.4f}, {length:.4f}, ' \
+                               f'{rot_quat[0]:.4f}, {rot_quat[1]:.4f}, {rot_quat[2]:.4f}, {rot_quat[3]:.4f}, ' \
+                               f'0, 0, {int(bounding_box[0]):.4f}, {int(bounding_box[1]):.4f}, {int(bounding_box[2]):.4f}, {int(bounding_box[3]):.4f}\n'
                 elif self.dst_db_type == 'udacity' and bounding_box != (0, 0, 0, 0):
-                    line = f'{int(bounding_box[0])}, {int(bounding_box[1])}, {int(bounding_box[2])}, {int(bounding_box[3])}, {class_name}\n'
+                    line = f'{int(bounding_box[0]):.4f}, {int(bounding_box[1]):.4f}, {int(bounding_box[2]):.4f}, {int(bounding_box[3]):.4f}, {class_name}\n'
 
             if line is not None:
                 with open(f'{self.dst_dir}label/{self.int_to_cam_name[int(name)]}/{idx:06d}.txt', 'a') as f:
