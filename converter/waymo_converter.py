@@ -124,9 +124,9 @@ class waymo:
                                            range_image_top_pose,
                                            ri_index=0):
         calibrations = sorted(frame.context.laser_calibrations, key=lambda c: c.name)
-        points = []
-        cp_points = []
-        intensity = []
+        points = {}
+        cp_points = {}
+        intensity = {}
 
         frame_pose = tf.convert_to_tensor(
             value=np.reshape(np.array(frame.pose.transform), [4, 4]))
@@ -183,12 +183,12 @@ class waymo:
             cp_tensor = tf.reshape(tf.convert_to_tensor(value=cp.data), cp.shape.dims)
             cp_points_tensor = tf.gather_nd(cp_tensor,
                                             tf.compat.v1.where(range_image_mask))
-            points.append(points_tensor.numpy())
-            cp_points.append(cp_points_tensor.numpy())
+            points[c.name] = points_tensor.numpy()
+            cp_points[c.name] = cp_points_tensor.numpy()
 
             intensity_tensor = tf.gather_nd(range_image_tensor,
                                             tf.where(range_image_mask))
-            intensity.append(intensity_tensor.numpy()[:, 1])
+            intensity[c.name] = intensity_tensor.numpy()[:, 1]
         return points, cp_points, intensity
 
     def save_lidar(self, frame, idx: int):
@@ -199,8 +199,6 @@ class waymo:
             camera_projections,
             range_image_top_pose
         )
-        points_0 = np.concatenate(points_0, axis=0)
-        intensity_0 = np.concatenate(intensity_0, axis=0)
 
         points_1, cp_points_1, intensity_1 = self.convert_range_image_to_point_cloud(
             frame,
@@ -209,21 +207,20 @@ class waymo:
             range_image_top_pose,
             ri_index=1
         )
-        points_1 = np.concatenate(points_1, axis=0)
-        intensity_1 = np.concatenate(intensity_1, axis=0)
 
-        points = np.concatenate([points_0, points_1], axis=0)
-        intensity = np.concatenate([intensity_0, intensity_1], axis=0)
+        for k, v in points_0.items():
+            points = np.concatenate([points_0[k], points_1[k]], axis=0)
+            intensity = np.concatenate([intensity_0[k], intensity_1[k]], axis=0)
 
-        # concatenate x,y,z and intensity
-        point_cloud = np.column_stack((points, intensity))
-        if 'like' not in self.dst_db_type:
-            point_cloud = (self.lid_rot @ point_cloud.T).T
-        point_cloud[:, 3] = intensity
+            # concatenate x,y,z and intensity
+            point_cloud = np.column_stack((points, intensity))
+            if 'like' not in self.dst_db_type:
+                point_cloud = (self.lid_rot @ point_cloud.T).T
+            point_cloud[:, 3] = intensity
 
-        # save
-        # note: must save as float32, otherwise loading errors
-        point_cloud.astype(np.float32).tofile(f'{self.dst_dir}lidar/TOP/{idx:06d}.bin')
+            # save
+            # note: must save as float32, otherwise loading errors
+            point_cloud.astype(np.float32).tofile(f'{self.dst_dir}lidar/{self.int_to_lid_name[int(k)]}/{idx:06d}.bin')
 
     def save_label(self, frame, idx: int):
         id_to_bbox = dict()

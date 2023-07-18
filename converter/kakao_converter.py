@@ -154,9 +154,8 @@ class kakao:
 
     def convert(self):
         print(f'Convert kakao to {self.dst_db_type} Dataset.')
-
         camera_names = ['camera[00]', 'camera[01]', 'camera[02]', 'camera[03]', 'camera[04]', 'camera[05]']
-        # TODO: convert calibration coordinates by referring to the kakao lidar and camera coordinate systems
+
         for sensor in self.kakaodb.sensor:
             intrinsic = None
             if sensor['intrinsic']['parameter'] is not None:
@@ -173,15 +172,18 @@ class kakao:
             self.calib_dict[sensor['name']]['intrinsic'] = intrinsic
             self.calib_dict[sensor['name']]['extrinsic'] = extrinsic
 
+        lid_extrinsic = self.lid_rot @ self.calib_dict['lidar[00]']['extrinsic']
+
         for sensor in self.kakaodb.sensor:
             if 'lidar' not in sensor['name']:
                 with open(f'{self.dst_dir}calib/{sensor["name"]}/{sensor["name"]}.txt', 'w') as f:
                     f.write(f'lidar[00]_extrinsic : '
-                            f'{", ".join(list(map(str, self.calib_dict["lidar[00]"]["extrinsic"].flatten())))}\n')
+                            f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
                     f.write(f'{sensor["name"]}_intrinsic : '
                             f'{", ".join(list(map(str, self.calib_dict[sensor["name"]]["intrinsic"].flatten())))}\n')
+                    cam_extrinsic = self.cam_rot @ self.calib_dict[sensor["name"]]["extrinsic"]
                     f.write(f'{sensor["name"]}_extrinsic : '
-                            f'{", ".join(list(map(str, self.calib_dict[sensor["name"]]["extrinsic"].flatten())))}\n')
+                            f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
 
         for frame in tqdm(self.kakaodb.frame):
             for anno_uuid in frame['anns']:
@@ -205,15 +207,15 @@ class kakao:
                 if frame_annotation['annotation_type_name'] == 'bbox_pcd3d':
                     x, y, z = list(map(float, frame_annotation['geometry']['center']))
                     w, l, h = list(map(float, frame_annotation['geometry']['wlh']))
-                    _, _, yaw = quat2euler(*frame_annotation['geometry']['orientation'])
-                    rot = Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix
+                    yaw, _, _ = Q(*frame_annotation['geometry']['orientation']).yaw_pitch_roll
+                    yaw -= np.pi / 2  # need to validation
 
                     for camera_name in camera_names:
                         rt_mat = np.eye(4)
                         # rt_mat = self.calib_dict[camera_name]['extrinsic'] @ np.linalg.inv(
                         #     self.calib_dict['lidar[00]']['extrinsic'])
                         cam_x, cam_y, cam_z, _ = rt_mat @ np.array([x, y, z, 1]).T
-                        corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h, rot)
+                        corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h, yaw)
                         proj_mat = np.eye(4)
                         proj_mat[:3, :3] = self.calib_dict[camera_name]['intrinsic'][:3, :3]
                         imcorners = self.get_projected_corners(corners, proj_mat)[:2]
