@@ -2,7 +2,7 @@
 for convert open source datasets KITTI, Waymo, NuScenes and Udacity
 
 ## July 2023 Update
-- [ ] modify converted dataset directory hierarchy
+- [x] added kitti-like label convert
 - [ ] working to add KAKAO dataset
 
 ## December 2022 Update
