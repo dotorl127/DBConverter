@@ -54,7 +54,7 @@ class KetiDBconverter(object):
         self.load_src_dataset()
 
     def check_db_type(self, db_type: str):
-        check_lst = ['kitti', 'waymo', 'nuscenes', 'udacity']
+        check_lst = ['kitti', 'waymo', 'nuscenes', 'udacity', 'kitti-like']
         if db_type.lower() in check_lst:
             self.tgt_db_type = db_type.lower()
 
@@ -82,7 +82,7 @@ class KetiDBconverter(object):
                 if not os.path.isdir(path):
                     os.makedirs(path)
             for lid_dir_name in self.lidar_dir_lst:
-                if self.tgt_db_type == 'kitti_like':
+                if 'like' in self.tgt_db_type:
                     path = self.tgt_path + 'label/' + lid_dir_name
                     if not os.path.isdir(path):
                         os.makedirs(path)

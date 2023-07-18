@@ -2,6 +2,7 @@ from os.path import join
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import waymo_open_dataset.label_pb2
 from tqdm import tqdm
 from glob import glob
 from pyquaternion import Quaternion as Q
@@ -39,6 +40,9 @@ class waymo:
         self.labels = []
         self.points = None
         self.cam_rot_dict = {}
+        print(f'Set Destination Dataset Type {dst_db_type}')
+        if 'kitti' in dst_db_type:
+            dst_db_type = 'kitti'
         self.cam_rot = cam_rot['waymo'][dst_db_type]
         self.cam_rot = check_valid_mat(self.cam_rot)
         self.lid_rot = lid_rot['waymo'][dst_db_type]
@@ -56,8 +60,7 @@ class waymo:
                                 3: 'SIDE_LEFT',
                                 4: 'SIDE_RIGHT',
                                 5: 'REAR'}
-        self.int_to_class_name = list(waymo_dict[f'to_{self.dst_db_type}'].values())
-        print(f'Set Destination Dataset Type {self.dst_db_type}')
+        self.int_to_class_name = list(waymo_dict[f'to_{dst_db_type}'].values())
 
     def calib_convert(self, frame, idx: int):
         lid_extrinsic = ''
@@ -80,9 +83,9 @@ class waymo:
             cam_intrinsic[2, 2] = 1
 
             with open(f'{self.dst_dir}calib/{self.int_to_cam_name[camera.name]}/{idx:06d}.txt', 'w') as f:
-                if self.dst_db_type == 'kitti':
+                if 'kitti' in self.dst_db_type:
                     Tr_velo_to_cam = self.cam_rot @ np.linalg.inv(T_cam_to_vehicle)
-                    self.cam_rot_dict[camera.name] = Tr_velo_to_cam
+                    self.cam_rot_dict[int(camera.name)] = Tr_velo_to_cam
                     Tr_imu_to_velo = self.lid_rot @ np.linalg.inv(lid_extrinsic)
 
                     line = ', '.join(map(str, cam_intrinsic.reshape(-1).tolist())) + '\n'
@@ -260,6 +263,10 @@ class waymo:
 
             class_name = self.int_to_class_name[obj.type]
 
+            if 'like' in self.dst_db_type:
+                cls_lst = ['UNKNOWN', 'VEHICLE', 'PEDESTRIAN', 'SIGN', 'CYCLIST']
+                class_name = cls_lst[obj.type]
+
             x = obj.box.center_x
             y = obj.box.center_y
             z = obj.box.center_z
@@ -277,9 +284,8 @@ class waymo:
                 x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
                 if 'like' in self.dst_db_type:
-                    rot -= np.pi / 2
                     line = f'{class_name}, 0, 0, -10, ' \
-                           f'-1 -1 -1 -1, ' \
+                           f'-1, -1, -1, -1, ' \
                            f'{height:.4f}, {width:.4f}, {length:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}\n'
                 else:
                     x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
@@ -295,11 +301,11 @@ class waymo:
                     f.write(line)
 
             rot_ = Q(matrix=self.cam_rot_dict[int(name)][:3, :3])
-            yaw, pitch, roll = rot_.yaw_pitch_roll
+            yaw, _, _ = rot_.yaw_pitch_roll
             rot -= yaw
 
             line = None
-            if self.dst_db_type == 'kitti':
+            if 'kitti' in self.dst_db_type:
                 x, y, z, _ = self.cam_rot_dict[int(name)] @ np.array([x, y, z, 1]).T
                 if z > 0:
                     line = f'{class_name}, 0, 0, -10, ' \

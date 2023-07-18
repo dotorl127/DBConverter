@@ -39,16 +39,20 @@ class kitti:
         self.image = None
         self.labels = []
         self.points = None
+        print(f'Set Destination Dataset Type {dst_db_type}')
+        if 'like' in dst_db_type:
+            dst_db_type = 'waymo'
         self.cam_rot = cam_rot['kitti'][dst_db_type]
         self.cam_rot = check_valid_mat(self.cam_rot)
         self.lid_rot = lid_rot['kitti'][dst_db_type]
         self.lid_rot = check_valid_mat(self.lid_rot)
         self.rt_mat = np.eye(4)
-        print(f'Set Destination Dataset Type {self.dst_db_type}')
 
-    def label_convert(self, label: kitti_label, dst_db_type: str):
-        type = kitti_dict[f'to_{dst_db_type}'][label.class_name]
-        if dst_db_type == 'waymo':
+    def label_convert(self, label: kitti_label):
+        if 'like' not in self.dst_db_type:
+            type = kitti_dict[f'to_{self.dst_db_type}'][label.class_name]
+
+        if self.dst_db_type == 'waymo':
             w = int(label.label_2d.x2 - label.label_2d.x1)
             h = int(label.label_2d.y2 - label.label_2d.y1)
             cnt_x = int(label.label_2d.x1 + w / 2)
@@ -57,15 +61,22 @@ class kitti:
                    f'{label.label_3d.locs[0]:4f}, {label.label_3d.locs[1]:4f}, {label.label_3d.locs[2]:4f}, ' \
                    f'{label.label_3d.dims[0]:4f}, {label.label_3d.dims[2]:4f}, {label.label_3d.dims[1]:4f}, ' \
                    f'{label.label_3d.rot:4f}, 0'
-        elif dst_db_type == 'nuscenes':
+        elif self.dst_db_type == 'nuscenes':
             rot = Rotation.from_euler('xyz', [0, 0, label.label_3d.rot])
             rot_quat = rot.as_quat()
             return f'{type}, {label.label_3d.locs[0]:4f}, {label.label_3d.locs[1]:4f}, {label.label_3d.locs[2]:4f}, ' \
                    f'{label.label_3d.dims[0]:4f}, {label.label_3d.dims[1]:4f}, {label.label_3d.dims[2]:4f}, ' \
                    f'{rot_quat[0]:4f}, {rot_quat[1]:4f}, {rot_quat[2]:4f}, {rot_quat[3]:4f}, {-1}, {-1}, ' \
                    f'{label.label_2d.x1:4f}, {label.label_2d.y1:4f}, {label.label_2d.x2:4f}, {label.label_2d.y2:4f}'
-        elif dst_db_type == 'udacity':
+        elif self.dst_db_type == 'udacity':
             return f'{label.label_2d.x1:4f}, {label.label_2d.y1:4f}, {label.label_2d.x2:4f}, {label.label_2d.y2:4f}, {type}'
+        elif 'like' in self.dst_db_type:
+            return f'{label.class_name}, 0, 0, -10, ' \
+                   f'{label.label_2d.x1:.4f}, {label.label_2d.y1:.4f}, ' \
+                   f'{label.label_2d.x2:.4f}, {label.label_2d.y2:.4f}, ' \
+                   f'{label.label_3d.dims[1]:.4f}, {label.label_3d.dims[0]:.4f}, {label.label_3d.dims[2]:.4f}, ' \
+                   f'{label.label_3d.locs[0]:.4f}, {label.label_3d.locs[1]:.4f}, {label.label_3d.locs[2]:.4f}, ' \
+                   f'{label.label_3d.rot:.4f}\n'
 
     def convert(self):
         print(f'Convert Kitti to {self.dst_db_type} Dataset.')
@@ -148,7 +159,8 @@ class kitti:
                     f.write(f'velodyne_beam_inclination_min: -1\n')
                     f.write(f'velodyne_beam_inclination_max: -1\n')
                     line = ', '.join(map(str, np.linalg.inv(self.lid_rot @
-                                                            self.calib_dict['Tr_imu_to_velo']).reshape(-1).tolist())) + '\n'
+                                                            self.calib_dict['Tr_imu_to_velo']).reshape(
+                        -1).tolist())) + '\n'
                     f.write(f'velodyne_extrinsic: {line}')
                 else:
                     line = ', '.join(map(str, self.calib_dict['Tr_cam_to_imu'][:3, 3].reshape(-1).tolist())) + '\n'
@@ -161,7 +173,8 @@ class kitti:
                     f.write(f'image_2_intrinsic: {line}')
 
                     line = ', '.join(map(str, np.linalg.inv(self.lid_rot @
-                                                            self.calib_dict['Tr_imu_to_velo'])[:, 3].reshape(-1).tolist())) + '\n'
+                                                            self.calib_dict['Tr_imu_to_velo'])[:, 3].reshape(
+                        -1).tolist())) + '\n'
                     f.write(f'velodyne_translation: {line}')
                     rot = Rotation.from_matrix(np.linalg.inv(self.calib_dict['Tr_imu_to_velo'])[:3, :3])
                     line = ', '.join(map(str, rot.as_quat().reshape(-1).tolist())) + '\n'
@@ -174,20 +187,34 @@ class kitti:
                 for label in self.labels:
                     x, y, z = label.get_coords()
                     w, h, l = label.get_dims()
-                    y -= h / 2
-                    x, y, z, _ = self.rt_mat @ np.array([x, y, z, 1])
-                    label.set_coords(x, y, z)
+
+                    if 'like' not in self.dst_db_type:
+                        y -= h / 2
+                        x, y, z, _ = self.rt_mat @ np.array([x, y, z, 1])
+                        label.set_coords(x, y, z)
                     if self.dst_db_type == 'nuscenes':
                         rot = label.get_rot()
                         label.set_rot(-rot - np.pi / 2)
-                    else:
+                    elif 'like' not in self.dst_db_type:
                         rot = label.get_rot()
                         label.set_rot(-rot)
-                    line = self.label_convert(label, self.dst_db_type) + '\n'
+
+                    line = self.label_convert(label) + '\n'
                     f.write(line)
+
+            if 'like' in self.dst_db_type:
+                with open(f'{self.dst_dir}label/velodyne/{index:06d}.txt', 'w') as f:
+                    for label in self.labels:
+                        x, y, z = label.get_coords()
+                        x, y, z = self.cam_rot @ np.array([x, y, z, 1]).T
+                        label.set_coords(x, y, z)
+                        line = self.label_convert(label) + '\n'
+                        f.write(line)
+
 
             # convert point cloud
             intensity = self.points[:, 3]
-            self.points = (self.lid_rot @ self.points.T).T
+            if 'like' not in self.dst_db_type
+                self.points = (self.lid_rot @ self.points.T).T
             self.points[:, 3] = intensity
             self.points.astype(np.float32).tofile(f'{self.dst_dir}lidar/velodyne/{index:06d}.bin')

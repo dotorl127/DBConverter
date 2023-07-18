@@ -33,11 +33,15 @@ class nuscenes:
 
         self.src_dir = src_dir
         self.dst_dir = dst_dir
+
         self.dst_db_type = dst_db_type
         self.calib_dict = {}
         self.image = None
         self.labels = []
         self.points = None
+        print(f'Set Destination Dataset Type {self.dst_db_type}')
+        if self.dst_db_type == 'kitti-like':
+            dst_db_type = 'kitti'
         self.cam_rot = cam_rot['nuscenes'][dst_db_type]
         self.cam_rot = check_valid_mat(self.cam_rot)
         self.lid_rot = lid_rot['nuscenes'][dst_db_type]
@@ -50,7 +54,6 @@ class nuscenes:
         self.radar_name = ['RADAR_BACK_LEFT', 'RADAR_BACK_RIGHT',
                            'RADAR_FRONT', 'RADAR_FRONT_LEFT', 'RADAR_FRONT_RIGHT']
         self.split_logs = None
-        print(f'Set Destination Dataset Type {self.dst_db_type}')
 
     def _split_to_samples(self, split_logs: List[str]) -> List[str]:
         samples = []
@@ -243,10 +246,13 @@ class nuscenes:
                         sample_annotation = self.nusc.get('sample_annotation', sample_annotation_token)
 
                         # Convert nuScenes category to nuScenes detection challenge category.
-                        if sample_annotation['category_name'] in nuscenes_dict[f'to_{self.dst_db_type}']:
-                            detection_name = nuscenes_dict[f'to_{self.dst_db_type}'][sample_annotation['category_name']]
+                        if 'like' not in self.dst_db_type:
+                            if sample_annotation['category_name'] in nuscenes_dict[f'to_{self.dst_db_type}']:
+                                detection_name = nuscenes_dict[f'to_{self.dst_db_type}'][sample_annotation['category_name']]
+                            else:
+                                continue
                         else:
-                            continue
+                            detection_name = sample_annotation['category_name']
 
                         # Get box in LIDAR frame.
                         _, box_lidar_nusc, _ = self.nusc.get_sample_data(lidar_token,
@@ -254,18 +260,18 @@ class nuscenes:
                                                                          selected_anntokens=[sample_annotation_token])
                         box_lidar_nusc = box_lidar_nusc[0]
 
-                        x, y, z = box_lidar_nusc.center.tolist()
-                        w, l, h = box_lidar_nusc.wlh.tolist()
-                        rot, _, _ = box_lidar_nusc.orientation.yaw_pitch_roll
-                        x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
-
                         if 'kitti' in self.dst_db_type:
                             truncated = 0.0
                             occluded = 0
 
-                            if detection_name is None: continue
+                            if 'like' not in self.dst_db_type and detection_name is None: continue
 
                             if 'like' in self.dst_db_type:
+                                x, y, z = box_lidar_nusc.center.tolist()
+                                w, l, h = box_lidar_nusc.wlh.tolist()
+                                rot, _, _ = box_lidar_nusc.orientation.yaw_pitch_roll
+                                rot -= np.pi / 2
+
                                 with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
                                     f.write(f'{detection_name}, 0, 0, -10, '
                                             f'-1, -1, -1, -1, '
@@ -282,7 +288,7 @@ class nuscenes:
                             if box_cam_kitti.center[2] < 0:
                                 continue
 
-                            cam_intrinsic = np.zeros((3, 4))
+                            cam_intrinsic = np.zeros((4, 4))
                             cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
 
                             bbox_2d = self.project_kitti_box_to_image(box_cam_kitti, cam_intrinsic, imsize=imsize)
