@@ -220,32 +220,27 @@ class kakao:
                         # TODO: convert label coordinates by referring to the kakao lidar and camera coordinate systems
                         x, y, z = np.dot(self.lid_rot, np.array([x, y, z, 1]).T)
                         cls = kakao_dict[f'to_{self.dst_db_type}'][frame_annotation['category_name']]
-                        with open(f'{osp.join(self.dst_dir, "label", "lidar[00]", {frame_data["file_name"]} + ".txt")}',
-                                  'a') as f:
-                            if self.dst_db_type == 'kitti':
-                                f.write(f'{cls}, 0, 0, -10, '
-                                        f'{x1}, {y1}, {x2}, {y2}, {x}, {y}, {z}, {h}, {w}, {l}, {yaw}\n')
-                            elif self.dst_db_type == 'waymo':
-                                img_w = x2 - x1
-                                img_h = y2 - y1
-                                cx = x1 + w / 2
-                                cy = y1 + h / 2
-                                f.write(f'{cx}, {cy}, {img_w}, {img_h}, 0, 0, {cls}, -1, '
-                                        f'{x}, {y}, {z}, {w}, {l}, {h}, {yaw}\n')
-                            elif self.dst_db_type == 'nuscenes':
-                                rot = Rotation.from_euler('xyz', [0, 0, rot])
-                                rot_quat = rot.as_quat()
-                                f.write(f'{cls}, {x}, {y}, {z}, {w}, {h}, {l}, '
-                                        f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, '
-                                        f'0, 0, {x1}, {y1}, {x2}, {y2}\n')
-                            elif self.dst_db_type == 'udacity':
-                                f.write(f'{x1}, {y1}, {x2}, {y2}, {cls}\n')
+                        if self.dst_db_type != 'udacity':
+                            with open(f'{osp.join(self.dst_dir, "label", "lidar[00]", {frame_data["file_name"]} + ".txt")}',
+                                      'a') as f:
+                                if 'kitti' in self.dst_db_type:
+                                    f.write(f'{cls}, 0, 0, -10, '
+                                            f'-1, -1, -1, -1, {x}, {y}, {z}, {h}, {w}, {l}, {yaw}\n')
+                                elif self.dst_db_type == 'waymo':
+                                    f.write(f'-1, -1, -1, -1, 0, 0, {cls}, -1, '
+                                            f'{x}, {y}, {z}, {w}, {l}, {h}, {yaw}\n')
+                                elif self.dst_db_type == 'nuscenes':
+                                    rot = Rotation.from_euler('xyz', [0, 0, rot])
+                                    rot_quat = rot.as_quat()
+                                    f.write(f'{cls}, {x}, {y}, {z}, {w}, {h}, {l}, '
+                                            f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, '
+                                            f'0, 0, -1, -1, -1, -1\n')
 
                         if z < 0: continue  # if z is forward in camera coordinates
 
                         with open(f'{osp.join(self.dst_dir, "label", camera_name, frame_data["file_name"] + ".txt")}',
                                   'a') as f:
-                            if self.dst_db_type == 'kitti':
+                            if 'kitti' in self.dst_db_type:
                                 cam_x, cam_y, cam_z = np.dot(self.cam_rot, np.array([cam_x, cam_y, cam_z, 1]).T)
                                 f.write(f'{cls}, 0, 0, -10, '
                                         f'{x1}, {y1}, {x2}, {y2}, {h}, {w}, {l}, '
