@@ -77,7 +77,7 @@ class waymo:
         for camera in frame.context.camera_calibrations:
             T_cam_to_vehicle = np.array(camera.extrinsic.transform).reshape(4, 4)
 
-            cam_intrinsic = np.zeros((3, 4))
+            cam_intrinsic = np.zeros((4, 4))
             cam_intrinsic[0, 0] = camera.intrinsic[0]
             cam_intrinsic[1, 1] = camera.intrinsic[1]
             cam_intrinsic[0, 2] = camera.intrinsic[2]
@@ -300,10 +300,11 @@ class waymo:
 
                 if 'kitti' in self.dst_db_type:
                     if 'like' in self.dst_db_type:
+                        up_z = z + height / 2
                         line = f'{class_name}, -1, 3, -99, ' \
                                f'-1, -1, -1, -1, ' \
                                f'{height:.4f}, {width:.4f}, {length:.4f}, ' \
-                               f'{x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {up_z:.4f}, {rot:.4f}, ' \
                                f'-1, {obj.id}\n'
                     else:
                         line = f'{class_name}, -1, 3, -99, ' \

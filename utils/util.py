@@ -92,7 +92,8 @@ def parse_label(dataset_type: str, label: list, vis_type: str):
         if 'kitti' in dataset_type:
             label_2d = [*list(map(float, label[4:8]))]
             x, y, z = list(map(float, label[11:14]))
-            z += float(label[8]) / 2
+            if 'like' not in dataset_type:
+                z += float(label[8]) / 2
             label_3d = [x, y, z,
                         float(label[9]), float(label[10]), float(label[8]), float(label[14])]
             label_cls = label[0]

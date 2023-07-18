@@ -181,11 +181,11 @@ class kitti:
             with open(f'{self.dst_dir}label/image_2/{index:06d}.txt', 'w') as f:
                 for label in self.labels:
                     x, y, z = label.get_coords()
-                    y += h / 2
                     w, h, l = label.get_dims()
                     rot = label.get_rot()
 
                     if 'like' not in self.dst_db_type:
+                        y += h / 2
                         x, y, z, _ = self.rt_mat @ np.array([x, y, z, 1])
                         label.set_coords(x, y, z)
 
@@ -207,7 +207,10 @@ class kitti:
                 with open(f'{self.dst_dir}label/velodyne/{index:06d}.txt', 'w') as f:
                     for label in self.labels:
                         x, y, z = label.get_coords()
-                        x, y, z = self.cam_rot @ np.array([x, y, z, 1]).T
+                        w, h, l = label.get_dims()
+                        y += h / 2
+                        # x, y, z, _ = np.linalg.inv(self.calib_dict['Tr_velo_to_cam']) @ np.array([x, y, z, 1]).T
+                        x, y, z, _ = self.cam_rot @ np.array([x, y, z, 1]).T
                         line = f'{label.class_name}, ' \
                                f'{label.truncated}, {label.occluded}, {label.alpha}, ' \
                                f'-1, -1, -1, -1, ' \

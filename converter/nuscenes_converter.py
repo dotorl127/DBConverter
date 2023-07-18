@@ -274,6 +274,7 @@ class nuscenes:
                                 rot -= np.pi / 2
 
                                 with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
+                                    y += h / 2
                                     f.write(f'{detection_name}, -1, 3, -99, '
                                             f'-1, -1, -1, -1, '
                                             f'{h}, {w}, {l}, {x}, {y}, {z}, {rot}, '
