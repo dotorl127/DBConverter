@@ -71,12 +71,7 @@ class kitti:
         elif self.dst_db_type == 'udacity':
             return f'{label.label_2d.x1:4f}, {label.label_2d.y1:4f}, {label.label_2d.x2:4f}, {label.label_2d.y2:4f}, {type}'
         elif 'like' in self.dst_db_type:
-            return f'{label.class_name}, 0, 0, -10, ' \
-                   f'{label.label_2d.x1:.4f}, {label.label_2d.y1:.4f}, ' \
-                   f'{label.label_2d.x2:.4f}, {label.label_2d.y2:.4f}, ' \
-                   f'{label.label_3d.dims[1]:.4f}, {label.label_3d.dims[0]:.4f}, {label.label_3d.dims[2]:.4f}, ' \
-                   f'{label.label_3d.locs[0]:.4f}, {label.label_3d.locs[1]:.4f}, {label.label_3d.locs[2]:.4f}, ' \
-                   f'{label.label_3d.rot:.4f}\n'
+            return
 
     def convert(self):
         print(f'Convert Kitti to {self.dst_db_type} Dataset.')
@@ -186,20 +181,24 @@ class kitti:
             with open(f'{self.dst_dir}label/image_2/{index:06d}.txt', 'w') as f:
                 for label in self.labels:
                     x, y, z = label.get_coords()
+                    y += h / 2
                     w, h, l = label.get_dims()
+                    rot = label.get_rot()
 
                     if 'like' not in self.dst_db_type:
-                        y -= h / 2
                         x, y, z, _ = self.rt_mat @ np.array([x, y, z, 1])
                         label.set_coords(x, y, z)
-                    if self.dst_db_type == 'nuscenes':
-                        rot = label.get_rot()
-                        label.set_rot(-rot - np.pi / 2)
-                    elif 'like' not in self.dst_db_type:
-                        rot = label.get_rot()
-                        label.set_rot(-rot)
 
-                    line = self.label_convert(label) + '\n'
+                        if self.dst_db_type == 'nuscenes':
+                            label.set_rot(-rot - np.pi / 2)
+
+                        line = self.label_convert(label) + '\n'
+                    else:
+                        line = f'{label.class_name}, 0, 0, -10, ' \
+                               f'{label.label_2d.x1:.4f}, {label.label_2d.y1:.4f}, ' \
+                               f'{label.label_2d.x2:.4f}, {label.label_2d.y2:.4f}, ' \
+                               f'{label.label_3d.dims[1]:.4f}, {label.label_3d.dims[0]:.4f}, {label.label_3d.dims[2]:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {label.label_3d.rot:.4f}\n'
                     f.write(line)
 
             if 'like' in self.dst_db_type:
@@ -207,8 +206,9 @@ class kitti:
                     for label in self.labels:
                         x, y, z = label.get_coords()
                         x, y, z = self.cam_rot @ np.array([x, y, z, 1]).T
-                        label.set_coords(x, y, z)
-                        line = self.label_convert(label) + '\n'
+                        line = f'{label.class_name}, 0, 0, -10, -1, -1, -1, -1, ' \
+                               f'{label.label_3d.dims[1]:.4f}, {label.label_3d.dims[0]:.4f}, {label.label_3d.dims[2]:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {label.label_3d.rot:.4f}\n'
                         f.write(line)
 
             # convert point cloud
