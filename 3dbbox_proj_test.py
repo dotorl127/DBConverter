@@ -36,7 +36,9 @@ for dir_name in dir_names:
     af_bbox = []
 
     for c in cuboid:
+        # x: left / y: down / z: forward in kitti label
         x, y, z, h, w, l, rot = c
+        # KITTI defines the box center as the bottom center of the object
         y -= h / 2
 
         x_corners = l / 2 * np.array([1, 1, 1, 1, -1, -1, -1, -1])
@@ -45,6 +47,7 @@ for dir_name in dir_names:
         corners = np.vstack((x_corners, y_corners, z_corners))
 
         # Rotate
+        # y asix is yaw in kitti label
         rot = Q(axis=(0, 1, 0), angle=rot).rotation_matrix
         corners = rot @ corners
 
