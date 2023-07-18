@@ -61,6 +61,7 @@ class waymo:
                                 4: 'SIDE_RIGHT',
                                 5: 'REAR'}
         self.int_to_class_name = list(waymo_dict[f'to_{dst_db_type}'].values())
+        self.merge_points = False
 
     def calib_convert(self, frame, idx: int):
         lid_extrinsic = ''
@@ -122,7 +123,8 @@ class waymo:
                                            range_images,
                                            camera_projections,
                                            range_image_top_pose,
-                                           ri_index=0):
+                                           ri_index=0,
+                                           merge_points=True):
         calibrations = sorted(frame.context.laser_calibrations, key=lambda c: c.name)
         points = {}
         cp_points = {}
@@ -152,7 +154,13 @@ class waymo:
                 beam_inclinations = tf.constant(c.beam_inclinations)
 
             beam_inclinations = tf.reverse(beam_inclinations, axis=[-1])
-            extrinsic = np.reshape(np.array(c.extrinsic.transform), [4, 4])
+
+            extrinsic = np.eye(4)
+            if merge_points:
+                extrinsic = np.reshape(np.array(c.extrinsic.transform), [4, 4])
+            else:
+                if c.name == 1:
+                    extrinsic = np.reshape(np.array(c.extrinsic.transform), [4, 4])
 
             range_image_tensor = tf.reshape(
                 tf.convert_to_tensor(value=range_image.data), range_image.shape.dims)
@@ -197,7 +205,8 @@ class waymo:
             frame,
             range_images,
             camera_projections,
-            range_image_top_pose
+            range_image_top_pose,
+            merge_points=self.merge_points
         )
 
         points_1, cp_points_1, intensity_1 = self.convert_range_image_to_point_cloud(
@@ -205,9 +214,11 @@ class waymo:
             range_images,
             camera_projections,
             range_image_top_pose,
-            ri_index=1
+            ri_index=1,
+            merge_points=self.merge_points
         )
 
+        total_points = []
         for k, v in points_0.items():
             points = np.concatenate([points_0[k], points_1[k]], axis=0)
             intensity = np.concatenate([intensity_0[k], intensity_1[k]], axis=0)
@@ -218,9 +229,15 @@ class waymo:
                 point_cloud = (self.lid_rot @ point_cloud.T).T
             point_cloud[:, 3] = intensity
 
-            # save
-            # note: must save as float32, otherwise loading errors
-            point_cloud.astype(np.float32).tofile(f'{self.dst_dir}lidar/{self.int_to_lid_name[int(k)]}/{idx:06d}.bin')
+            if self.merge_points:
+                total_points.append(point_cloud)
+
+            if not self.merge_points:
+                point_cloud.astype(np.float32).tofile(f'{self.dst_dir}lidar/{self.int_to_lid_name[int(k)]}/{idx:06d}.bin')
+
+        if self.merge_points:
+            total_points = np.concatenate(total_points, axis=0)
+            total_points.astype(np.float32).tofile(f'{self.dst_dir}lidar/TOP/{idx:06d}.bin')
 
     def save_label(self, frame, idx: int):
         id_to_bbox = dict()
