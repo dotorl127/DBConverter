@@ -211,10 +211,9 @@ class kitti:
                         line = self.label_convert(label) + '\n'
                         f.write(line)
 
-
             # convert point cloud
             intensity = self.points[:, 3]
-            if 'like' not in self.dst_db_type
+            if 'like' not in self.dst_db_type:
                 self.points = (self.lid_rot @ self.points.T).T
             self.points[:, 3] = intensity
             self.points.astype(np.float32).tofile(f'{self.dst_dir}lidar/velodyne/{index:06d}.bin')

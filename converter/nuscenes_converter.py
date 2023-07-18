@@ -18,6 +18,8 @@ from dictionary.class_dictionary import nuscenes_dict
 from dictionary.rotation_dictionary import cam_rot, lid_rot
 from utils.util import check_valid_mat
 
+from tqdm import tqdm
+
 
 class nuscenes:
     def __init__(self,
@@ -132,8 +134,7 @@ class nuscenes:
         r0_rect = Quaternion(axis=[1, 0, 0], angle=0)  # Dummy values.
         imsize = (1600, 900)
 
-        for sample_token in sample_tokens:
-            print(f'Converting data {idx:06d}...')
+        for sample_token in tqdm(sample_tokens):
             # Get sample data.
             sample = self.nusc.get('sample', sample_token)
             sample_annotation_tokens = sample['anns']

@@ -11,6 +11,7 @@ from scipy.spatial.transform import Rotation
 from utils.util import check_valid_mat
 
 from pyquaternion import Quaternion as Q
+import open3d as o3d
 
 
 class kakao_parser:
@@ -112,13 +113,15 @@ class kakao:
         self.dst_dir = dst_dir
         self.dst_db_type = dst_db_type
         self.kakaodb = kakao_parser(self.src_dir)
+        print(f'Set Destination Dataset Type {self.dst_db_type}')
+        if 'like' in dst_db_type:
+            dst_db_type = 'kitti'
         self.cam_rot = cam_rot['kakao'][dst_db_type]
         self.cam_rot = check_valid_mat(self.cam_rot)
         self.lid_rot = lid_rot['kakao'][dst_db_type]
         self.lid_rot = check_valid_mat(self.lid_rot)
         self.calib_dict = {}
         self.lid2cam = {}
-        print(f'Set Destination Dataset Type {self.dst_db_type}')
 
     def get_corners(self, x, y, z, w, l, h, rot):
         # 3D bounding box corners. (Convention: x points forward, y to the left, z up.)
@@ -170,10 +173,15 @@ class kakao:
             self.calib_dict[sensor['name']]['intrinsic'] = intrinsic
             self.calib_dict[sensor['name']]['extrinsic'] = extrinsic
 
-            with open(f'{self.dst_dir}/calib/{sensor["name"]}/{sensor["name"]}.txt', 'w') as f:
-                if intrinsic is not None:
-                    f.write(f'{sensor["name"]}_intrinsic : {", ".join(list(map(str, intrinsic.flatten())))}')
-                f.write(f'{sensor["name"]}_extrinsic : {", ".join(list(map(str, extrinsic.flatten())))}')
+        for sensor in self.kakaodb.sensor:
+            if 'lidar' not in sensor['name']:
+                with open(f'{self.dst_dir}calib/{sensor["name"]}/{sensor["name"]}.txt', 'w') as f:
+                    f.write(f'lidar[00]_extrinsic : '
+                            f'{", ".join(list(map(str, self.calib_dict["lidar[00]"]["extrinsic"].flatten())))}\n')
+                    f.write(f'{sensor["name"]}_intrinsic : '
+                            f'{", ".join(list(map(str, self.calib_dict[sensor["name"]]["intrinsic"].flatten())))}\n')
+                    f.write(f'{sensor["name"]}_extrinsic : '
+                            f'{", ".join(list(map(str, self.calib_dict[sensor["name"]]["extrinsic"].flatten())))}\n')
 
         for frame in tqdm(self.kakaodb.frame):
             for anno_uuid in frame['anns']:
@@ -183,7 +191,16 @@ class kakao:
                 f_name = f'{frame_data["file_name"]}.{frame_data["file_format"]}'
                 src_path = osp.join(self.src_dir, 'sensor', frame_data['name'], f_name)
                 dst_path = osp.join(self.dst_dir, frame_data['type'], frame_data['name'], f_name)
-                copyfile(src_path, dst_path)
+
+                if frame_data["file_format"] == 'pcd':
+                    pcd = o3d.io.read_point_cloud(src_path)
+                    points = np.asarray(pcd.points)[:, :3]
+                    points = self.lid_rot[:3, :3] @ points.T
+                    pcd = o3d.geometry.PointCloud()
+                    pcd.points = o3d.utility.Vector3dVector(points.T)
+                    o3d.io.write_point_cloud(dst_path, pcd)
+                else:
+                    copyfile(src_path, dst_path)
 
                 if frame_annotation['annotation_type_name'] == 'bbox_pcd3d':
                     x, y, z = list(map(float, frame_annotation['geometry']['center']))
@@ -192,12 +209,13 @@ class kakao:
                     rot = Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix
 
                     for camera_name in camera_names:
-                        rt_mat = self.calib_dict[camera_name]['extrinsic'] @ np.linalg.inv(
-                            self.calib_dict['lidar[00]']['extrinsic'])
-                        cam_x, cam_y, cam_z = np.dot(rt_mat, np.array([x, y, z, 1]).T)
+                        rt_mat = np.eye(4)
+                        # rt_mat = self.calib_dict[camera_name]['extrinsic'] @ np.linalg.inv(
+                        #     self.calib_dict['lidar[00]']['extrinsic'])
+                        cam_x, cam_y, cam_z, _ = rt_mat @ np.array([x, y, z, 1]).T
                         corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h, rot)
                         proj_mat = np.eye(4)
-                        proj_mat[:3, :3] = self.calib_dict[camera_name]['intrinsic']
+                        proj_mat[:3, :3] = self.calib_dict[camera_name]['intrinsic'][:3, :3]
                         imcorners = self.get_projected_corners(corners, proj_mat)[:2]
                         bbox = (np.min(imcorners[0]), np.min(imcorners[1]), np.max(imcorners[0]), np.max(imcorners[1]))
 
