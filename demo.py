@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser.add_argument('--vis_type', type=str, default='3d', help='Type of visualization[2d, 3d]')
     args = parser.parse_args()
 
-    assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'udacity'], \
+    assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'udacity', 'kitti-like'], \
         f'Invalid Dataset Type Please Check {args.dataset_type}'
 
     root_dir = args.root_dir
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     camera_names = sorted(os.listdir(f'{root_dir}camera/'))
 
     if args.vis_type == '3d':
-        assert args.dataset_type in ['kitti', 'waymo', 'nuscenes'], f'Udacity dataset does not support 3D visualize'
+        assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'kitti-like'], f'Udacity dataset does not support 3D visualize'
         assert os.path.exists(f'{root_dir}lidar/'), f'LiDAR point cloud data has not found'
 
         points_dir_name = None

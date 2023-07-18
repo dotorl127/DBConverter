@@ -5,33 +5,36 @@ import numpy as np
 from pyquaternion import Quaternion as Q
 
 
-dir_name = 'FRONT_RIGHT'
-dir_names = os.listdir('/home/moon/DATASET/waymo2kitti/camera')
+dir_path = '/home/moon/DATASET/nusc2kitti/'
+dir_names = os.listdir(f'{dir_path}/camera')
 idx = 1
 
 # read img
 for dir_name in dir_names:
-    img = cv2.imread(f'/home/moon/DATASET/waymo2kitti/camera/{dir_name}/{idx:06d}.png')
+    img = cv2.imread(f'{dir_path}/camera/{dir_name}/{idx:06d}.png')
 
     # read calibration
-    with open(f'/home/moon/DATASET/waymo2kitti/calib/{dir_name}/{idx:06d}.txt', 'r') as cf:
+    with open(f'{dir_path}/calib/{dir_name}/{idx:06d}.txt', 'r') as cf:
         datas = cf.readlines()
-        intrinsic = np.array(list(map(float, datas[0].split(': ')[1].split(', ')))).reshape(3, 4)
+        intrinsic = np.array(list(map(float, datas[0].split(': ')[1].split(', ')))).reshape(4, 4)
 
     # read label
-    with open(f'/home/moon/DATASET/waymo2kitti/label/{dir_name}/{idx:06d}.txt', 'r') as lf:
+    with open(f'{dir_path}/label/{dir_name}/{idx:06d}.txt', 'r') as lf:
         labels = lf.readlines()
+
     cls = []
     bbox = []
     cuboid = []
+
     for label in labels:
-        name, _, _, _, x1, y1, x2, y2, h, w, l, x, y, z, rot = label.split(', ')
+        name, _, _, _, x1, y1, x2, y2, h, w, l, x, y, z, rot, _, _ = label.split(', ')
         cls.append(name)
         bbox.append(list(map(float, [x1, y1, x2, y2])))
         cuboid.append(list(map(float, [x, y, z, h, w, l, rot])))
 
     # convert img label
     af_bbox = []
+
     for c in cuboid:
         x, y, z, h, w, l, rot = c
         y -= h / 2
@@ -67,7 +70,6 @@ for dir_name in dir_names:
             cv2.line(img, (coor[i, 0], coor[i, 1]), (coor[j, 0], coor[j, 1]), (0, 0, 255), 2)
             i, j = k + 4, (k + 1) % 4 + 4
             cv2.line(img, (coor[i, 0], coor[i, 1]), (coor[j, 0], coor[j, 1]), (0, 0, 255), 2)
-
             i, j = k, k + 4
             cv2.line(img, (coor[i, 0], coor[i, 1]), (coor[j, 0], coor[j, 1]), (0, 0, 255), 2)
 

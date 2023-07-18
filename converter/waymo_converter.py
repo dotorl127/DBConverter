@@ -2,7 +2,6 @@ from os.path import join
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import waymo_open_dataset.label_pb2
 from tqdm import tqdm
 from glob import glob
 from pyquaternion import Quaternion as Q
@@ -18,6 +17,9 @@ from waymo_open_dataset import dataset_pb2 as W
 from waymo_open_dataset import dataset_pb2
 from waymo_open_dataset.utils import range_image_utils
 from waymo_open_dataset.utils import transform_utils
+
+
+MERGE_POINT_FLAG = False
 
 
 class waymo:
@@ -61,7 +63,6 @@ class waymo:
                                 4: 'SIDE_RIGHT',
                                 5: 'REAR'}
         self.int_to_class_name = list(waymo_dict[f'to_{dst_db_type}'].values())
-        self.merge_points = False
 
     def calib_convert(self, frame, idx: int):
         lid_extrinsic = ''
@@ -206,7 +207,7 @@ class waymo:
             range_images,
             camera_projections,
             range_image_top_pose,
-            merge_points=self.merge_points
+            merge_points=MERGE_POINT_FLAG
         )
 
         points_1, cp_points_1, intensity_1 = self.convert_range_image_to_point_cloud(
@@ -215,7 +216,7 @@ class waymo:
             camera_projections,
             range_image_top_pose,
             ri_index=1,
-            merge_points=self.merge_points
+            merge_points=MERGE_POINT_FLAG
         )
 
         total_points = []
@@ -229,13 +230,13 @@ class waymo:
                 point_cloud = (self.lid_rot @ point_cloud.T).T
             point_cloud[:, 3] = intensity
 
-            if self.merge_points:
+            if MERGE_POINT_FLAG:
                 total_points.append(point_cloud)
 
-            if not self.merge_points:
+            if not MERGE_POINT_FLAG:
                 point_cloud.astype(np.float32).tofile(f'{self.dst_dir}lidar/{self.int_to_lid_name[int(k)]}/{idx:06d}.bin')
 
-        if self.merge_points:
+        if MERGE_POINT_FLAG:
             total_points = np.concatenate(total_points, axis=0)
             total_points.astype(np.float32).tofile(f'{self.dst_dir}lidar/TOP/{idx:06d}.bin')
 
@@ -297,10 +298,18 @@ class waymo:
                 line = None
                 x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
-                if 'like' in self.dst_db_type:
-                    line = f'{class_name}, 0, 0, -10, ' \
-                           f'-1, -1, -1, -1, ' \
-                           f'{height:.4f}, {width:.4f}, {length:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}\n'
+                if 'kitti' in self.dst_db_type:
+                    if 'like' in self.dst_db_type:
+                        line = f'{class_name}, -1, 3, -99, ' \
+                               f'-1, -1, -1, -1, ' \
+                               f'{height:.4f}, {width:.4f}, {length:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}, ' \
+                               f'-1, {obj.id}\n'
+                    else:
+                        line = f'{class_name}, -1, 3, -99, ' \
+                               f'-1, -1, -1, -1, ' \
+                               f'{height:.4f}, {width:.4f}, {length:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}\n'
                 else:
                     x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
 
@@ -320,12 +329,22 @@ class waymo:
 
             line = None
             if 'kitti' in self.dst_db_type:
+                rot -= np.pi / 2
                 x, y, z, _ = self.cam_rot_dict[int(name)] @ np.array([x, y, z, 1]).T
                 if z > 0:
-                    line = f'{class_name}, 0, 0, -10, ' \
-                           f'{int(bounding_box[0]):.4f}, {int(bounding_box[1]):.4f}, ' \
-                           f'{int(bounding_box[2]):.4f}, {int(bounding_box[3]):.4f}, ' \
-                           f'{height:.4f}, {width:.4f}, {length:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}\n'
+                    if 'like' in self.dst_db_type:
+                        line = f'{class_name}, -1, 3, -99, ' \
+                               f'{int(bounding_box[0]):.4f}, {int(bounding_box[1]):.4f}, ' \
+                               f'{int(bounding_box[2]):.4f}, {int(bounding_box[3]):.4f}, ' \
+                               f'{height:.4f}, {width:.4f}, {length:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}, ' \
+                               f'-1, {obj.id}\n'
+                    else:
+                        line = f'{class_name}, -1, 3, -99, ' \
+                               f'{int(bounding_box[0]):.4f}, {int(bounding_box[1]):.4f}, ' \
+                               f'{int(bounding_box[2]):.4f}, {int(bounding_box[3]):.4f}, ' \
+                               f'{height:.4f}, {width:.4f}, {length:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}\n'
             else:
                 if self.dst_db_type == 'nuscenes':
                     if x > 0:

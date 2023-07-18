@@ -194,11 +194,13 @@ class kitti:
 
                         line = self.label_convert(label) + '\n'
                     else:
-                        line = f'{label.class_name}, 0, 0, -10, ' \
+                        line = f'{label.class_name}, ' \
+                               f'{label.truncated}, {label.occluded}, {label.alpha}, ' \
                                f'{label.label_2d.x1:.4f}, {label.label_2d.y1:.4f}, ' \
                                f'{label.label_2d.x2:.4f}, {label.label_2d.y2:.4f}, ' \
                                f'{label.label_3d.dims[1]:.4f}, {label.label_3d.dims[0]:.4f}, {label.label_3d.dims[2]:.4f}, ' \
-                               f'{x:.4f}, {y:.4f}, {z:.4f}, {label.label_3d.rot:.4f}\n'
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {label.label_3d.rot:.4f}, ' \
+                               f'-1, -1\n'
                     f.write(line)
 
             if 'like' in self.dst_db_type:
@@ -206,9 +208,12 @@ class kitti:
                     for label in self.labels:
                         x, y, z = label.get_coords()
                         x, y, z = self.cam_rot @ np.array([x, y, z, 1]).T
-                        line = f'{label.class_name}, 0, 0, -10, -1, -1, -1, -1, ' \
+                        line = f'{label.class_name}, ' \
+                               f'{label.truncated}, {label.occluded}, {label.alpha}, ' \
+                               f'-1, -1, -1, -1, ' \
                                f'{label.label_3d.dims[1]:.4f}, {label.label_3d.dims[0]:.4f}, {label.label_3d.dims[2]:.4f}, ' \
-                               f'{x:.4f}, {y:.4f}, {z:.4f}, {label.label_3d.rot:.4f}\n'
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {label.label_3d.rot:.4f}, ' \
+                               f'-1, -1\n'
                         f.write(line)
 
             # convert point cloud

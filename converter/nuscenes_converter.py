@@ -274,9 +274,10 @@ class nuscenes:
                                 rot -= np.pi / 2
 
                                 with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
-                                    f.write(f'{detection_name}, 0, 0, -10, '
+                                    f.write(f'{detection_name}, -1, 3, -99, '
                                             f'-1, -1, -1, -1, '
-                                            f'{h}, {w}, {l}, {x}, {y}, {z}, {rot}\n')
+                                            f'{h}, {w}, {l}, {x}, {y}, {z}, {rot}, '
+                                            f'-1, -1\n')
 
                             box_cam_kitti = \
                                 KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
@@ -301,9 +302,17 @@ class nuscenes:
                             w, l, h = box_cam_kitti.wlh
                             x, y, z = box_cam_kitti.center
                             yaw = -np.arctan2(v[2], v[0])
-                            output = f'{detection_name}, -1, -1, -10, ' \
-                                     f'{bbox_2d[0]:.4f}, {bbox_2d[1]:.4f}, {bbox_2d[2]:.4f}, {bbox_2d[3]:.4f}, ' \
-                                     f'{h:.4f}, {w:.4f}, {l:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {yaw:.4f}\n'
+
+                            if 'like' in self.dst_db_type:
+                                output = f'{detection_name}, -1, 3, -99, ' \
+                                         f'{bbox_2d[0]:.4f}, {bbox_2d[1]:.4f}, {bbox_2d[2]:.4f}, {bbox_2d[3]:.4f}, ' \
+                                         f'{h:.4f}, {w:.4f}, {l:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {yaw:.4f}, ' \
+                                         f'-1, -1\n'
+                            else:
+                                output = f'{detection_name}, -1, 3, -99, ' \
+                                         f'{bbox_2d[0]:.4f}, {bbox_2d[1]:.4f}, {bbox_2d[2]:.4f}, {bbox_2d[3]:.4f}, ' \
+                                         f'{h:.4f}, {w:.4f}, {l:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {yaw:.4f}\n'
+
                         else:
                             box_cam_kitti = \
                                 KittiDB.box_nuscenes_to_kitti(box_lidar_nusc,
@@ -335,13 +344,6 @@ class nuscenes:
                             cy = int(bbox_2d[1] + (h / 2))
 
                             if self.dst_db_type == 'waymo':
-                                output = f'-1, -1, -1, -1, 0, 0, {detection_name}, -1, ' \
-                                         f'{box_lidar_nusc.center[0]:.4f}, {box_lidar_nusc.center[1]:.4f}, {box_lidar_nusc.center[2]:.4f}, ' \
-                                         f'{box_lidar_nusc.wlh[0]:.4f}, {box_lidar_nusc.wlh[1]:.4f}, {box_lidar_nusc.wlh[2]:.4f}, {yaw:.4f}\n'
-
-                                with open(f'{self.dst_dir}label/{self.lidar_name[0]}/{idx:06d}.txt', 'a') as f:
-                                    f.write(output)
-
                                 output = f'{cx:.4f}, {cy:.4f}, {w:.4f}, {h:.4f}, 0, 0, {detection_name}, -1, ' \
                                          f'{box_lidar_nusc.center[0]:.4f}, {box_lidar_nusc.center[1]:.4f}, {box_lidar_nusc.center[2]:.4f}, ' \
                                          f'{box_lidar_nusc.wlh[0]:.4f}, {box_lidar_nusc.wlh[1]:.4f}, {box_lidar_nusc.wlh[2]:.4f}, {yaw:.4f}\n'
