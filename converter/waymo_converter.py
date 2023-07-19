@@ -1,3 +1,4 @@
+import os.path
 from os.path import join
 import numpy as np
 import cv2
@@ -156,13 +157,6 @@ class waymo:
 
             beam_inclinations = tf.reverse(beam_inclinations, axis=[-1])
 
-            extrinsic = np.eye(4)
-            if merge_points:
-                extrinsic = np.reshape(np.array(c.extrinsic.transform), [4, 4])
-            else:
-                if c.name == 1:
-                    extrinsic = np.reshape(np.array(c.extrinsic.transform), [4, 4])
-
             range_image_tensor = tf.reshape(
                 tf.convert_to_tensor(value=range_image.data), range_image.shape.dims)
             pixel_pose_local = None
@@ -176,6 +170,10 @@ class waymo:
             # No Label Zone
             nlz_mask = range_image_tensor[..., 3] != 1.0  # 1.0: in NLZ
             range_image_mask = range_image_mask & nlz_mask
+            if MERGE_POINT_FLAG:
+                extrinsic = np.reshape(np.array(c.extrinsic.transform), [4, 4])
+            else:
+                extrinsic = np.eye(4)
 
             range_image_cartesian = range_image_utils.extract_point_cloud_from_range_image(
                 tf.expand_dims(range_image_tensor[..., 0], axis=0),
@@ -192,6 +190,7 @@ class waymo:
             cp_tensor = tf.reshape(tf.convert_to_tensor(value=cp.data), cp.shape.dims)
             cp_points_tensor = tf.gather_nd(cp_tensor,
                                             tf.compat.v1.where(range_image_mask))
+
             points[c.name] = points_tensor.numpy()
             cp_points[c.name] = cp_points_tensor.numpy()
 
@@ -219,6 +218,12 @@ class waymo:
             merge_points=MERGE_POINT_FLAG
         )
 
+        # waymo TOP lidar fov : -17.92 ~ 2.42
+        # waymo TOP lidar channels : 64
+
+        calibrations = sorted(frame.context.laser_calibrations, key=lambda c: c.name)
+        top_extrinsic = np.reshape(np.array(calibrations[0].extrinsic.transform), [4, 4])
+
         total_points = []
         for k, v in points_0.items():
             points = np.concatenate([points_0[k], points_1[k]], axis=0)
@@ -234,17 +239,22 @@ class waymo:
                 total_points.append(point_cloud)
 
             if not MERGE_POINT_FLAG:
+                if not os.path.exists(f'{self.dst_dir}lidar/{self.int_to_lid_name[int(k)]}'):
+                    os.makedirs(f'{self.dst_dir}lidar/{self.int_to_lid_name[int(k)]}')
                 point_cloud.astype(np.float32).tofile(f'{self.dst_dir}lidar/{self.int_to_lid_name[int(k)]}/{idx:06d}.bin')
 
         if MERGE_POINT_FLAG:
             total_points = np.concatenate(total_points, axis=0)
+            total_points[:, :3] -= top_extrinsic[:3, 3].T
             total_points.astype(np.float32).tofile(f'{self.dst_dir}lidar/TOP/{idx:06d}.bin')
 
     def save_label(self, frame, idx: int):
+        calibrations = sorted(frame.context.laser_calibrations, key=lambda c: c.name)
+        top_extrinsic = np.reshape(np.array(calibrations[0].extrinsic.transform), [4, 4])
+
         id_to_bbox = dict()
         id_to_name = dict()
         no_label_cam_name = ['FRONT', 'FRONT_RIGHT', 'FRONT_LEFT', 'SIDE_RIGHT', 'SIDE_LEFT']
-        lines = ''
 
         for labels in frame.projected_lidar_labels:
             name = labels.name
@@ -282,16 +292,17 @@ class waymo:
                 cls_lst = ['UNKNOWN', 'VEHICLE', 'PEDESTRIAN', 'SIGN', 'CYCLIST']
                 class_name = cls_lst[obj.type]
 
-            x = obj.box.center_x
-            y = obj.box.center_y
-            z = obj.box.center_z
+            x = obj.box.center_x - top_extrinsic[0, 3]
+            y = obj.box.center_y - top_extrinsic[1, 3]
+            z = obj.box.center_z - top_extrinsic[2, 3]
             height = obj.box.height  # up/down
             width = obj.box.width  # left/right
             length = obj.box.length  # front/back
             rot = obj.box.heading
 
             if 'kitti' in self.dst_db_type:
-                z -= height / 2
+                if 'like' not in self.dst_db_type:
+                    z -= height / 2
                 rot -= np.pi / 2
 
             if self.dst_db_type != 'udacity':
@@ -300,11 +311,10 @@ class waymo:
 
                 if 'kitti' in self.dst_db_type:
                     if 'like' in self.dst_db_type:
-                        up_z = z + height / 2
                         line = f'{class_name}, -1, 3, -99, ' \
                                f'-1, -1, -1, -1, ' \
                                f'{height:.4f}, {width:.4f}, {length:.4f}, ' \
-                               f'{x:.4f}, {y:.4f}, {up_z:.4f}, {rot:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {rot:.4f}, ' \
                                f'-1, {obj.id}\n'
                     else:
                         line = f'{class_name}, -1, 3, -99, ' \

@@ -5,9 +5,9 @@ import numpy as np
 from pyquaternion import Quaternion as Q
 
 
-dir_path = '/home/moon/DATASET/nusc2kitti/'
+dir_path = '/home/moon/DATASET/kitti2kitti-like/'
 dir_names = os.listdir(f'{dir_path}/camera')
-idx = 1
+idx = 19
 
 # read img
 for dir_name in dir_names:
@@ -77,7 +77,7 @@ for dir_name in dir_names:
             cv2.line(img, (coor[i, 0], coor[i, 1]), (coor[j, 0], coor[j, 1]), (0, 0, 255), 2)
 
     imsize = 1000
-    ratio = 1080 / 1920
+    ratio = 370 / 1224
     img = cv2.resize(img, (imsize, int(imsize * ratio)))
     cv2.imshow('proj cuboid test', img)
     cv2.waitKey(0)

@@ -9,7 +9,7 @@ kitti:
 waymo:
   sensor_name_list:
     camera: ['FRONT', 'FRONT_RIGHT', 'FRONT_LEFT', 'SIDE_RIGHT', 'SIDE_LEFT']
-    lidar: ['TOP', 'FRONT', 'SIDE_LEFT', 'SIDE_RIGHT', 'REAR']
+    lidar: ['TOP']
   class_name_list: ['UNKNOWN', 'VEHICLE', 'PEDESTRIAN', 'SIGN', 'CYCLIST']
 
 # https://www.nuscenes.org/nuscenes#data-format

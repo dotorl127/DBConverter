@@ -133,15 +133,26 @@ class kitti:
                     mat = check_valid_mat(mat)
                     self.calib_dict[name] = mat
 
-            # make RT matrix to convert coordinates system
-            self.calib_dict['Tr_cam_to_imu'] = \
-                np.linalg.inv(self.calib_dict['Tr_imu_to_velo']) @ \
-                np.linalg.inv(self.cam_rot @ self.calib_dict['Tr_velo_to_cam']) @ \
-                np.linalg.inv(self.calib_dict['R0_rect'])
-            self.rt_mat = self.lid_rot @ np.linalg.inv(self.calib_dict['Tr_velo_to_cam'])
+            if 'like' not in self.dst_db_type:
+                # make RT matrix to convert coordinates system
+                self.calib_dict['Tr_cam_to_imu'] = \
+                    np.linalg.inv(self.calib_dict['Tr_imu_to_velo']) @ \
+                    np.linalg.inv(self.cam_rot @ self.calib_dict['Tr_velo_to_cam']) @ \
+                    np.linalg.inv(self.calib_dict['R0_rect'])
+                self.rt_mat = self.lid_rot @ np.linalg.inv(self.calib_dict['Tr_velo_to_cam'])
 
             with open(f'{self.dst_dir}calib/image_2/{index:06d}.txt', 'w') as f:
-                if self.dst_db_type == 'waymo':
+                if 'like' in self.dst_db_type:
+                    intrinsic = self.calib_dict['P2']
+                    line = ', '.join(map(str, intrinsic.reshape(-1).tolist())) + '\n'
+                    f.write(f'P2: {line}')
+                    line = ', '.join(map(str, self.calib_dict['R0_rect'].reshape(-1).tolist())) + '\n'
+                    f.write(f'R0_rect: {line}')
+                    line = ', '.join(map(str, self.calib_dict['Tr_velo_to_cam'].reshape(-1).tolist())) + '\n'
+                    f.write(f'Tr_velo_to_cam: {line}')
+                    line = ', '.join(map(str, self.calib_dict['Tr_imu_to_velo'].reshape(-1).tolist())) + '\n'
+                    f.write(f'Tr_imu_to_velo: {line}')
+                elif self.dst_db_type == 'waymo':
                     intrinsic = self.calib_dict['P2']
                     line = ', '.join(map(str, intrinsic.reshape(-1).tolist())) + '\n'
                     f.write(f'image_2_intrinsic: {line}')
@@ -208,14 +219,15 @@ class kitti:
                     for label in self.labels:
                         x, y, z = label.get_coords()
                         w, h, l = label.get_dims()
-                        y += h / 2
-                        # x, y, z, _ = np.linalg.inv(self.calib_dict['Tr_velo_to_cam']) @ np.array([x, y, z, 1]).T
-                        x, y, z, _ = self.cam_rot @ np.array([x, y, z, 1]).T
+                        y -= h / 2
+                        x, y, z, _ = np.linalg.inv(self.calib_dict['Tr_velo_to_cam']) @ \
+                                     np.linalg.inv(self.calib_dict['R0_rect']) @ np.array([x, y, z, 1]).T
+                        # x, y, z, _ = self.cam_rot @ np.array([x, y, z, 1]).T
                         line = f'{label.class_name}, ' \
                                f'{label.truncated}, {label.occluded}, {label.alpha}, ' \
                                f'-1, -1, -1, -1, ' \
                                f'{label.label_3d.dims[1]:.4f}, {label.label_3d.dims[0]:.4f}, {label.label_3d.dims[2]:.4f}, ' \
-                               f'{x:.4f}, {y:.4f}, {z:.4f}, {label.label_3d.rot:.4f}, ' \
+                               f'{x:.4f}, {y:.4f}, {z:.4f}, {-label.label_3d.rot:.4f}, ' \
                                f'-1, -1\n'
                         f.write(line)
 

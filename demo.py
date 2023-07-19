@@ -11,7 +11,7 @@ from utils import util
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--root_dir', help='Directory to load Dataset')
+    parser.add_argument('--root_path', help='Directory to load Dataset')
     parser.add_argument('--dataset_type', help='Type Name of Dataset to Visulization')
     parser.add_argument('--vis_type', type=str, default='3d', help='Type of visualization[2d, 3d]')
     args = parser.parse_args()
@@ -19,33 +19,33 @@ if __name__ == '__main__':
     assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'udacity', 'kitti-like'], \
         f'Invalid Dataset Type Please Check {args.dataset_type}'
 
-    root_dir = args.root_dir
-    if root_dir[-1] != '/': root_dir += '/'
+    root_path = args.root_path
+    if root_path[-1] != '/': root_path += '/'
 
-    camera_names = sorted(os.listdir(f'{root_dir}camera/'))
+    camera_names = sorted(os.listdir(f'{root_path}camera/'))
 
     if args.vis_type == '3d':
         assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'kitti-like'], f'Udacity dataset does not support 3D visualize'
-        assert os.path.exists(f'{root_dir}lidar/'), f'LiDAR point cloud data has not found'
+        assert os.path.exists(f'{root_path}lidar/'), f'LiDAR point cloud data has not found'
 
         points_dir_name = None
-        lid_lst = os.listdir(f'{root_dir}lidar/')
+        lid_lst = os.listdir(f'{root_path}lidar/')
         for lid_name in lid_lst:
             if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP']:
                 points_dir_name = lid_name
 
-        filenames = sorted(os.listdir(f'{root_dir}lidar/{points_dir_name}'))
+        filenames = sorted(os.listdir(f'{root_path}lidar/{points_dir_name}'))
         filenames = [filename.rstrip('.bin') for filename in filenames]
 
-        for filename in filenames:
+        for filename in filenames[19:]:
             points = None
             labels_3d = None
             labels_cls = None
             for lid_name in lid_lst:
                 if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP']:
-                    points = np.fromfile(f'{root_dir}lidar/{points_dir_name}/{filename}.bin',
+                    points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}.bin',
                                          dtype=np.float32).reshape(-1, 4)
-                    with open(f'{root_dir}label/{lid_name}/{filename}.txt', 'r') as f:
+                    with open(f'{root_path}label/{lid_name}/{filename}.txt', 'r') as f:
                         labels_3d = []
                         labels_cls = []
                         lines = f.readlines()
@@ -60,18 +60,18 @@ if __name__ == '__main__':
             mlab.show(stop=True)
             mlab.close()
     else:
-        filenames = sorted(os.listdir(f'{root_dir}label/{camera_names[0]}'))
+        filenames = sorted(os.listdir(f'{root_path}label/{camera_names[0]}'))
         filenames = [filename.rstrip('.txt') for filename in filenames]
-        ext = os.listdir(f'{root_dir}camera/{camera_names[0]}')[0].split('.')[-1]
+        ext = os.listdir(f'{root_path}camera/{camera_names[0]}')[0].split('.')[-1]
         for filename in filenames:
             for camera_name in camera_names:
-                img = cv2.imread(f'{root_dir}camera/{camera_name}/{filename}.{ext}')
+                img = cv2.imread(f'{root_path}camera/{camera_name}/{filename}.{ext}')
                 width = img.shape[1]
                 height = img.shape[0]
                 ratio = height / width
                 img = cv2.resize(img, (600, int(600 * ratio)))
 
-                with open(f'{root_dir}label/{camera_name}/{filename}.txt', 'r') as f:
+                with open(f'{root_path}label/{camera_name}/{filename}.txt', 'r') as f:
                     lines = f.readlines()
                     for line in lines:
                         label = line.strip().split(', ')
