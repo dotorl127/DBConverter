@@ -92,7 +92,7 @@ class waymo:
                     Tr_imu_to_velo = self.lid_rot @ np.linalg.inv(lid_extrinsic)
 
                     line = ', '.join(map(str, cam_intrinsic.reshape(-1).tolist())) + '\n'
-                    f.write(f'P2: {line}')
+                    f.write(f'P: {line}')
                     line = ', '.join(map(str, np.eye(3).reshape(-1).tolist())) + '\n'
                     f.write(f'R0_rect: {line}')
                     line = ', '.join(map(str, Tr_velo_to_cam.reshape(-1).tolist())) + '\n'

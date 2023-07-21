@@ -224,7 +224,7 @@ class kakao:
                         f.write(f'lidar(00)_extrinsic : '
                                 f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
                     elif 'kitti' in self.dst_db_type:
-                        f.write(f'P2 : '
+                        f.write(f'P : '
                                 f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
                         cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
                         lid2cam = np.linalg.inv(cam_extrinsic) @ lid_extrinsic

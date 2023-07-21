@@ -208,7 +208,7 @@ class nuscenes:
                 if 'kitti' in self.dst_db_type:
                     # Create calibration file.
                     kitti_transforms = dict()
-                    kitti_transforms['P2'] = cam_intrinsic  # Left camera transform.
+                    kitti_transforms['P'] = cam_intrinsic  # Left camera transform.
                     kitti_transforms['R0_rect'] = r0_rect.rotation_matrix  # Cameras are already rectified.
                     kitti_transforms['Tr_velo_to_cam'] = np.hstack((velo_to_cam_rot, velo_to_cam_trans.reshape(3, 1)))
                     kitti_transforms['Tr_imu_to_velo'] = imu_to_velo_kitti
