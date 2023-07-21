@@ -292,9 +292,9 @@ class waymo:
                 cls_lst = ['UNKNOWN', 'VEHICLE', 'PEDESTRIAN', 'SIGN', 'CYCLIST']
                 class_name = cls_lst[obj.type]
 
-            x = obj.box.center_x - top_extrinsic[0, 3]
-            y = obj.box.center_y - top_extrinsic[1, 3]
-            z = obj.box.center_z - top_extrinsic[2, 3]
+            x_ = obj.box.center_x
+            y_ = obj.box.center_y
+            z_ = obj.box.center_z
             height = obj.box.height  # up/down
             width = obj.box.width  # left/right
             length = obj.box.length  # front/back
@@ -307,7 +307,10 @@ class waymo:
 
             if self.dst_db_type != 'udacity':
                 line = None
-                x, y, z, _ = self.lid_rot @ np.array([x, y, z, 1]).T
+                x, y, z, _ = self.lid_rot @ np.array([x_, y_, z_, 1]).T
+                x -= top_extrinsic[0, 3]
+                y -= top_extrinsic[1, 3]
+                z -= top_extrinsic[2, 3]
 
                 if 'kitti' in self.dst_db_type:
                     if 'like' in self.dst_db_type:
@@ -339,9 +342,10 @@ class waymo:
             rot -= yaw
 
             line = None
+            x, y, z, _ = self.cam_rot_dict[int(name)] @ np.array([x_, y_, z_, 1]).T
             if 'kitti' in self.dst_db_type:
                 rot -= np.pi / 2
-                x, y, z, _ = self.cam_rot_dict[int(name)] @ np.array([x, y, z, 1]).T
+                y += height / 2
                 if z > 0:
                     if 'like' in self.dst_db_type:
                         line = f'{class_name}, -1, 3, -99, ' \

@@ -4,6 +4,7 @@ import numpy as np
 
 import mayavi.mlab as mlab
 import cv2
+import open3d as o3d
 
 from utils import visulize as V
 from utils import util
@@ -31,21 +32,26 @@ if __name__ == '__main__':
         points_dir_name = None
         lid_lst = os.listdir(f'{root_path}lidar/')
         for lid_name in lid_lst:
-            if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP']:
+            if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar[00]']:
                 points_dir_name = lid_name
 
         filenames = sorted(os.listdir(f'{root_path}lidar/{points_dir_name}'))
-        filenames = [filename.rstrip('.bin') for filename in filenames]
+        pts_ext = filenames[0][-3:]
+        filenames = [filename.rstrip(pts_ext) for filename in filenames]
 
-        for filename in filenames[19:]:
+        for filename in filenames[10:]:
             points = None
             labels_3d = None
             labels_cls = None
             for lid_name in lid_lst:
-                if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP']:
-                    points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}.bin',
-                                         dtype=np.float32).reshape(-1, 4)
-                    with open(f'{root_path}label/{lid_name}/{filename}.txt', 'r') as f:
+                if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar[00]']:
+                    if pts_ext != 'pcd':
+                        points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}',
+                                             dtype=np.float32).reshape(-1, 3)
+                    else:
+                        pcd = o3d.io.read_point_cloud(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}')
+                        points = np.asarray(pcd.points)
+                    with open(f'{root_path}label/{lid_name}/{filename}txt', 'r') as f:
                         labels_3d = []
                         labels_cls = []
                         lines = f.readlines()
@@ -70,6 +76,9 @@ if __name__ == '__main__':
                 height = img.shape[0]
                 ratio = height / width
                 img = cv2.resize(img, (600, int(600 * ratio)))
+
+                if not os.path.exists(f'{root_path}label/{camera_name}/{filename}.txt'):
+                    continue
 
                 with open(f'{root_path}label/{camera_name}/{filename}.txt', 'r') as f:
                     lines = f.readlines()

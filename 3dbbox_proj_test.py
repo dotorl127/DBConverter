@@ -5,21 +5,21 @@ import numpy as np
 from pyquaternion import Quaternion as Q
 
 
-dir_path = '/home/moon/DATASET/kitti2kitti-like/'
+dir_path = '/home/moon/DATASET/kakao2kitti-like/'
 dir_names = os.listdir(f'{dir_path}/camera')
-idx = 19
+idx = 10
 
 # read img
 for dir_name in dir_names:
-    img = cv2.imread(f'{dir_path}/camera/{dir_name}/{idx:06d}.png')
+    img = cv2.imread(f'{dir_path}camera/{dir_name}/{idx:06d}.png')
 
     # read calibration
-    with open(f'{dir_path}/calib/{dir_name}/{idx:06d}.txt', 'r') as cf:
+    with open(f'{dir_path}calib/{dir_name}/{idx:06d}.txt', 'r') as cf:
         datas = cf.readlines()
         intrinsic = np.array(list(map(float, datas[0].split(': ')[1].split(', ')))).reshape(4, 4)
 
     # read label
-    with open(f'{dir_path}/label/{dir_name}/{idx:06d}.txt', 'r') as lf:
+    with open(f'{dir_path}label/{dir_name}/{idx:06d}.txt', 'r') as lf:
         labels = lf.readlines()
 
     cls = []
@@ -36,7 +36,7 @@ for dir_name in dir_names:
     af_bbox = []
 
     for c in cuboid:
-        # x: left / y: down / z: forward in kitti label
+        # x: right / y: down / z: forward in kitti label
         x, y, z, h, w, l, rot = c
         # KITTI defines the box center as the bottom center of the object
         y -= h / 2
@@ -77,7 +77,7 @@ for dir_name in dir_names:
             cv2.line(img, (coor[i, 0], coor[i, 1]), (coor[j, 0], coor[j, 1]), (0, 0, 255), 2)
 
     imsize = 1000
-    ratio = 370 / 1224
+    ratio = 1200 / 1920
     img = cv2.resize(img, (imsize, int(imsize * ratio)))
     cv2.imshow('proj cuboid test', img)
     cv2.waitKey(0)

@@ -12,6 +12,7 @@ from utils.util import check_valid_mat
 
 from pyquaternion import Quaternion as Q
 import open3d as o3d
+import cv2
 
 
 class kakao_parser:
@@ -82,25 +83,6 @@ class kakao_parser:
         return self._token2ind[table_name][token]
 
 
-def quat2euler(w, x, y, z):
-    ysqr = y * y
-
-    t0 = +2.0 * (w * x + y * z)
-    t1 = +1.0 - 2.0 * (x * x + ysqr)
-    X = np.degrees(np.arctan2(t0, t1))
-
-    t2 = +2.0 * (w * y - z * x)
-
-    t2 = np.clip(t2, a_min=-1.0, a_max=1.0)
-    Y = np.degrees(np.arcsin(t2))
-
-    t3 = +2.0 * (w * z + x * y)
-    t4 = +1.0 - 2.0 * (ysqr + z * z)
-    Z = np.degrees(np.arctan2(t3, t4))
-
-    return X, Y, Z
-
-
 class kakao:
     def __init__(self,
                  src_dir: str = None,
@@ -121,13 +103,13 @@ class kakao:
         self.lid_rot = lid_rot['kakao'][dst_db_type]
         self.lid_rot = check_valid_mat(self.lid_rot)
         self.calib_dict = {}
-        self.lid2cam = {}
+        self.img_size = {}
 
     def get_corners(self, x, y, z, w, l, h, rot):
-        # 3D bounding box corners. (Convention: x points forward, y to the left, z up.)
+        # 3D bounding box corners. (Convention: x points right, y to the down, z forward)
         x_corners = l / 2 * np.array([1, 1, 1, 1, -1, -1, -1, -1])
-        y_corners = w / 2 * np.array([1, -1, -1, 1, 1, -1, -1, 1])
-        z_corners = h / 2 * np.array([1, 1, -1, -1, 1, 1, -1, -1])
+        y_corners = h / 2 * np.array([1, -1, -1, 1, 1, -1, -1, 1])
+        z_corners = w / 2 * np.array([1, 1, -1, -1, 1, 1, -1, -1])
         corners = np.vstack((x_corners, y_corners, z_corners))
 
         # Rotate
@@ -154,79 +136,117 @@ class kakao:
 
     def convert(self):
         print(f'Convert kakao to {self.dst_db_type} Dataset.')
-        camera_names = ['camera[00]', 'camera[01]', 'camera[02]', 'camera[03]', 'camera[04]', 'camera[05]']
+        camera_names = ['camera(00)', 'camera(01)', 'camera(02)', 'camera(03)', 'camera(04)', 'camera(05)']
 
-        for sensor in self.kakaodb.sensor:
-            intrinsic = None
-            if sensor['intrinsic']['parameter'] is not None:
-                intrinsic = np.eye(4)
-                intrinsic[:3, :3] = sensor['intrinsic']['parameter']
+        for idx, frame in enumerate(tqdm(self.kakaodb.frame[:100])):
+            frame_data_uuid = frame['data']['lidar(00)']
+            frame_data = self.kakaodb.get('frame_data', frame_data_uuid)
+            src_path = f'{self.src_dir}sensor/{frame_data["name"]}/{frame_data["file_name"]}.{frame_data["file_format"]}'
+            dst_path = f'{self.dst_dir}{frame_data["type"]}/{frame_data["name"]}/{idx:06d}.{frame_data["file_format"]}'
 
-            loc = list(map(float, sensor['translation']))
-            rot = list(map(float, sensor['rotation']))
-            extrinsic = np.zeros((4, 4))
+            if frame_data["file_format"] == 'pcd':
+                pcd = o3d.io.read_point_cloud(src_path)
+                points = np.asarray(pcd.points)
+                if 'like' not in self.dst_db_type:
+                    points = self.lid_rot[:3, :3] @ points.T
+                    points = points.T
+                pcd = o3d.geometry.PointCloud()
+                pcd.points = o3d.utility.Vector3dVector(points)
+                o3d.io.write_point_cloud(dst_path, pcd)
+            else:
+                # TODO: check point cloud array shape
+                points = np.fromfile(src_path, dtype=np.float32)
+                points = points.reshape(5, -1)
+                points = points.T
+                print(points)
+                if 'like' not in self.dst_db_type:
+                    points = self.lid_rot[:3, :3] @ points.T
+                    points = points.T
+                points.astype(np.float32).tofile(dst_path)
+
+            sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
+            loc = list(map(float, sensor_data['translation']))
+            rot = list(map(float, sensor_data['rotation']))
+            extrinsic = np.eye(4)
             extrinsic[:3, :3] = Q(*rot).rotation_matrix
             extrinsic[:3, 3] = loc
 
-            self.calib_dict[sensor['name']] = {}
-            self.calib_dict[sensor['name']]['intrinsic'] = intrinsic
-            self.calib_dict[sensor['name']]['extrinsic'] = extrinsic
+            if 'like' not in self.dst_db_type:
+                lid_extrinsic = self.lid_rot @ extrinsic
+            else:
+                lid_extrinsic = extrinsic
 
-        lid_extrinsic = self.lid_rot @ self.calib_dict['lidar[00]']['extrinsic']
+            for camera_name in camera_names:
+                frame_data_uuid = frame['data'][camera_name]
+                frame_data = self.kakaodb.get('frame_data', frame_data_uuid)
+                src_path = f'{self.src_dir}sensor/{frame_data["name"]}/{frame_data["file_name"]}.{frame_data["file_format"]}'
+                dst_path = f'{self.dst_dir}{frame_data["type"]}/{frame_data["name"]}/{idx:06d}.{frame_data["file_format"]}'
+                copyfile(src_path, dst_path)
 
-        for sensor in self.kakaodb.sensor:
-            if 'lidar' not in sensor['name']:
-                with open(f'{self.dst_dir}calib/{sensor["name"]}/{sensor["name"]}.txt', 'w') as f:
-                    f.write(f'lidar[00]_extrinsic : '
-                            f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
-                    f.write(f'{sensor["name"]}_intrinsic : '
-                            f'{", ".join(list(map(str, self.calib_dict[sensor["name"]]["intrinsic"].flatten())))}\n')
-                    cam_extrinsic = self.cam_rot @ self.calib_dict[sensor["name"]]["extrinsic"]
-                    f.write(f'{sensor["name"]}_extrinsic : '
+                img_shape = cv2.imread(src_path).shape
+                self.img_size[camera_name] = (img_shape[1], img_shape[0])
+
+                sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
+                intrinsic = np.eye(4)
+                intrinsic[:3, :3] = sensor_data['intrinsic']['parameter']
+
+                loc = list(map(float, sensor_data['translation']))
+                rot = list(map(float, sensor_data['rotation']))
+                extrinsic = np.eye(4)
+                extrinsic[:3, :3] = Q(*rot).rotation_matrix
+                extrinsic[:3, 3] = loc
+
+                self.calib_dict[sensor_data['name']] = {}
+                self.calib_dict[sensor_data['name']]['intrinsic'] = intrinsic
+                self.calib_dict[sensor_data['name']]['extrinsic'] = extrinsic
+
+                with open(f'{self.dst_dir}calib/{camera_name}/{idx:06d}.txt', 'w') as f:
+                    f.write(f'{camera_name}_intrinsic : '
+                            f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
+                    cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
+                    f.write(f'{camera_name}_extrinsic : '
                             f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
+                    f.write(f'lidar(00)_extrinsic : '
+                            f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
 
-        for frame in tqdm(self.kakaodb.frame):
             for anno_uuid in frame['anns']:
                 frame_annotation = self.kakaodb.get('frame_annotation', anno_uuid)
-                frame_data = self.kakaodb.get('frame_data', frame_annotation['frame_data_uuid'])
-
-                f_name = f'{frame_data["file_name"]}.{frame_data["file_format"]}'
-                src_path = osp.join(self.src_dir, 'sensor', frame_data['name'], f_name)
-                dst_path = osp.join(self.dst_dir, frame_data['type'], frame_data['name'], f_name)
-
-                if frame_data["file_format"] == 'pcd':
-                    pcd = o3d.io.read_point_cloud(src_path)
-                    points = np.asarray(pcd.points)[:, :3]
-                    points = self.lid_rot[:3, :3] @ points.T
-                    pcd = o3d.geometry.PointCloud()
-                    pcd.points = o3d.utility.Vector3dVector(points.T)
-                    o3d.io.write_point_cloud(dst_path, pcd)
-                else:
-                    copyfile(src_path, dst_path)
 
                 if frame_annotation['annotation_type_name'] == 'bbox_pcd3d':
                     x, y, z = list(map(float, frame_annotation['geometry']['center']))
-                    w, l, h = list(map(float, frame_annotation['geometry']['wlh']))
-                    yaw, _, _ = Q(*frame_annotation['geometry']['orientation']).yaw_pitch_roll
-                    yaw -= np.pi / 2  # need to validation
+                    w, l, h, = list(map(float, frame_annotation['geometry']['wlh']))
+                    yaw_, _, _ = Q(*frame_annotation['geometry']['orientation']).yaw_pitch_roll
+
+                    if 'like' in self.dst_db_type:
+                        yaw = yaw_ + np.pi / 2
+                        if not os.path.exists(f'{self.dst_dir}label/lidar(00)'):
+                            os.makedirs(f'{self.dst_dir}label/lidar(00)')
+
+                        with open(f'{self.dst_dir}label/lidar(00)/{idx:06d}.txt', 'a') as f:
+                            f.write(f'{frame_annotation["category_name"]}, -1, 3, -99, -1, -1, -1, -1, '
+                                    f'{h:.4f}, {w:.4f}, {l:.4f}, {x:.4f}, {y:.4f}, {z:.4f}, {yaw:.4f}, -1, -1\n')
 
                     for camera_name in camera_names:
-                        rt_mat = np.eye(4)
-                        # rt_mat = self.calib_dict[camera_name]['extrinsic'] @ np.linalg.inv(
-                        #     self.calib_dict['lidar[00]']['extrinsic'])
+                        rt_mat = np.linalg.inv(self.calib_dict[camera_name]['extrinsic']) @ lid_extrinsic
                         cam_x, cam_y, cam_z, _ = rt_mat @ np.array([x, y, z, 1]).T
-                        corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h, yaw)
-                        proj_mat = np.eye(4)
-                        proj_mat[:3, :3] = self.calib_dict[camera_name]['intrinsic'][:3, :3]
-                        imcorners = self.get_projected_corners(corners, proj_mat)[:2]
+                        cam_yaw, _, _ = Q(matrix=np.linalg.inv(self.calib_dict[camera_name]['extrinsic'][:3, :3])).yaw_pitch_roll
+                        yaw = -yaw_ - cam_yaw
+
+                        if cam_z < 0: continue
+                        corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h,
+                                                   Q(axis=(0, 1, 0), angle=yaw).rotation_matrix)
+                        imcorners = self.get_projected_corners(corners, self.calib_dict[camera_name]['intrinsic'])[:2]
+
+                        if np.all(abs(imcorners[0]) > self.img_size[camera_name][0]) or \
+                                np.all(abs(imcorners[1]) > self.img_size[camera_name][1]): continue
                         bbox = (np.min(imcorners[0]), np.min(imcorners[1]), np.max(imcorners[0]), np.max(imcorners[1]))
 
                         # Crop bbox to prevent it extending outside image.
                         bbox_crop = tuple(max(0, b) for b in bbox)
-                        bbox = (min(frame_data['width'], bbox_crop[0]),
-                                min(frame_data['width'], bbox_crop[1]),
-                                min(frame_data['width'], bbox_crop[2]),
-                                min(frame_data['height'], bbox_crop[3]))
+                        bbox = (min(self.img_size[camera_name][0], bbox_crop[0]),
+                                min(self.img_size[camera_name][0], bbox_crop[1]),
+                                min(self.img_size[camera_name][0], bbox_crop[2]),
+                                min(self.img_size[camera_name][1], bbox_crop[3]))
 
                         # Detect if a cropped box is empty.
                         if bbox_crop[0] >= bbox_crop[2] or bbox_crop[1] >= bbox_crop[3]:
@@ -237,40 +257,33 @@ class kakao:
                         if bbox == (0, 0, 0, 0):
                             continue
 
-                        # TODO: convert label coordinates by referring to the kakao lidar and camera coordinate systems
-                        x, y, z = np.dot(self.lid_rot, np.array([x, y, z, 1]).T)
-                        cls = kakao_dict[f'to_{self.dst_db_type}'][frame_annotation['category_name']]
-                        if self.dst_db_type != 'udacity':
-                            with open(f'{osp.join(self.dst_dir, "label", "lidar[00]", {frame_data["file_name"]} + ".txt")}',
-                                      'a') as f:
+                        if 'like' not in self.dst_db_type:
+                            cls = kakao_dict[f'to_{self.dst_db_type}'][frame_annotation['category_name']]
+                        else:
+                            cls = frame_annotation['category_name']
+
+                        with open(f'{self.dst_dir}label/{camera_name}/{idx:06d}.txt', 'a') as f:
+                            if self.dst_db_type != 'udacity':
+                                if 'kitti' not in self.dst_db_type:
+                                    x, y, z = np.dot(self.lid_rot, np.array([x, y, z, 1]).T)
+
                                 if 'kitti' in self.dst_db_type:
-                                    f.write(f'{cls}, 0, 0, -10, '
-                                            f'-1, -1, -1, -1, {x}, {y}, {z}, {h}, {w}, {l}, {yaw}\n')
+                                    cam_y += h / 2
+                                    f.write(f'{cls}, -1, 3, -99, '
+                                            f'{x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f}, '
+                                            f'{h:.4f}, {w:.4f}, {l:.4f}, {cam_x:.4f}, {cam_y:.4f}, {cam_z:.4f}, {yaw:.4f}, -1, -1\n')
                                 elif self.dst_db_type == 'waymo':
-                                    f.write(f'-1, -1, -1, -1, 0, 0, {cls}, -1, '
-                                            f'{x}, {y}, {z}, {w}, {l}, {h}, {yaw}\n')
+                                    width = x2 - x1
+                                    cx = x1 + width / 2
+                                    height = y2 - y1
+                                    cy = y1 + height / 2
+                                    f.write(f'{cx:.4f}, {cy:.4f}, {width:.4f}, {height:.4f}, 0, 0, {cls:.4f}, -1, '
+                                            f'{x:.4f}, {y:.4f}, {z:.4f}, {w:.4f}, {l:.4f}, {h:.4f}, {yaw:.4f}\n')
                                 elif self.dst_db_type == 'nuscenes':
                                     rot = Rotation.from_euler('xyz', [0, 0, rot])
                                     rot_quat = rot.as_quat()
-                                    f.write(f'{cls}, {x}, {y}, {z}, {w}, {h}, {l}, '
-                                            f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, '
-                                            f'0, 0, -1, -1, -1, -1\n')
-
-                        if z < 0: continue  # if z is forward in camera coordinates
-
-                        with open(f'{osp.join(self.dst_dir, "label", camera_name, frame_data["file_name"] + ".txt")}',
-                                  'a') as f:
-                            if 'kitti' in self.dst_db_type:
-                                cam_x, cam_y, cam_z = np.dot(self.cam_rot, np.array([cam_x, cam_y, cam_z, 1]).T)
-                                f.write(f'{cls}, 0, 0, -10, '
-                                        f'{x1}, {y1}, {x2}, {y2}, {h}, {w}, {l}, '
-                                        f'{cam_x}, {cam_y}, {cam_z}, {yaw}\n')
-                            elif self.dst_db_type == 'waymo':
-                                f.write(f'{cx}, {cy}, {w}, {h}, 0, 0, {cls}, -1, '
-                                        f'{x}, {y}, {z}, {w}, {l}, {h}, {yaw}\n')
-                            elif self.dst_db_type == 'nuscenes':
-                                f.write(f'{cls}, {x}, {y}, {z}, {w}, {h}, {l}, '
-                                        f'{rot_quat[0]}, {rot_quat[1]}, {rot_quat[2]}, {rot_quat[3]}, '
-                                        f'0, 0, {x1}, {y1}, {x2}, {y2}\n')
-                            elif self.dst_db_type == 'udacity':
-                                f.write(f'{x1}, {y1}, {x2}, {y2}, {cls}\n')
+                                    f.write(f'{cls}, {x:.4f}, {y:.4f}, {z:.4f}, {w:.4f}, {h:.4f}, {l:.4f}, '
+                                            f'{rot_quat[0]:.4f}, {rot_quat[1]:.4f}, {rot_quat[2]:.4f}, {rot_quat[3]:.4f}, '
+                                            f'0, 0, {x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f}\n')
+                            else:
+                                f.write(f'{x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f}, {cls}\n')
