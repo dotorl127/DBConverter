@@ -200,13 +200,38 @@ class kakao:
                 self.calib_dict[sensor_data['name']]['extrinsic'] = extrinsic
 
                 with open(f'{self.dst_dir}calib/{camera_name}/{idx:06d}.txt', 'w') as f:
-                    f.write(f'{camera_name}_intrinsic : '
-                            f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
-                    cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
-                    f.write(f'{camera_name}_extrinsic : '
-                            f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
-                    f.write(f'lidar(00)_extrinsic : '
-                            f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
+                    if self.dst_db_type == 'nuscenes':
+                        f.write(f'{camera_name}_intrinsic : '
+                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
+                        cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
+                        f.write(f'{camera_name}_extrinsic : '
+                                f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
+                        f.write(f'lidar(00)_extrinsic : '
+                                f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
+                    elif self.dst_db_type == 'waymo':
+                        f.write(f'{camera_name}_intrinsic : '
+                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
+                        cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
+                        f.write(f'{camera_name}_extrinsic : '
+                                f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
+                        f.write(f'{camera_name}_width : 1920\n')
+                        f.write(f'{camera_name}_height : 1200\n')
+                        f.write(f'{camera_name}_rolling_shutter_direction : \n')
+                        f.write(f'lidar(00)_beam_inclinations : \n')
+                        # TODO: output LiDAR fov
+                        f.write(f'lidar(00)_beam_inclination_min : \n')
+                        f.write(f'lidar(00)_beam_inclination_max : \n')
+                        f.write(f'lidar(00)_extrinsic : '
+                                f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
+                    elif 'kitti' in self.dst_db_type:
+                        f.write(f'P2 : '
+                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
+                        cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
+                        lid2cam = np.linalg.inv(cam_extrinsic) @ lid_extrinsic
+                        f.write(f'Tr_velo_to_cam : '
+                                f'{", ".join(list(map(str, lid2cam.flatten())))}\n')
+                        f.write(f'Tr_imu_to_cam : '
+                                f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
 
             for anno_uuid in frame['anns']:
                 frame_annotation = self.kakaodb.get('frame_annotation', anno_uuid)
