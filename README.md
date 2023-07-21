@@ -67,7 +67,7 @@ python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_di
 python demo.py --root_dir {dataset path to load} --dataset_type {dataset type name to visualize} --vis_type {visualize type name[2d, 3d]}
 ```
 
-## KITTI
+## [KITTI](https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=2d)
 ### Directory hierarchy
 ```
 root
@@ -90,7 +90,7 @@ type, truncated, occluded, alpha, bbox(left, top, right, bottom), dimensions(hei
 - LiDAR : x(forward), y(left), z(up)
 
 
-## Waymo
+## [Waymo](https://waymo.com/open/licensing/)
 ### Directory hierarchy
 ```
 root
@@ -116,7 +116,7 @@ bbox(center x, y, width, height), speed(x, y), type, id, location(x, y, z), dime
 - LiDAR : x(forward), y(left), z(up)
 
 
-## Nuscenes
+## [Nuscenes](https://www.nuscenes.org/nuscenes)
 ### Directory hierarchy
 ```
 root
@@ -170,7 +170,7 @@ type, translation(center x, y, z), size(width, height, length), rotation(quatern
 - LiDAR : x(right), y(forward), z(up)
 
 
-## Udacity
+## [Udacity](http://bit.ly/udacity-annoations-crowdai)
 ### Directory hierarchy
 ```
 root
