@@ -74,11 +74,11 @@ waymo_dict = {
 
 nuscenes_dict = {
     'to_kitti': {
-        'animal': 'DontCare',
+        'animal': 'Misc',
         'human.pedestrian.adult': 'Pedestrian',
         'human.pedestrian.child': 'Pedestrian',
         'human.pedestrian.construction_worker': 'Pedestrian',
-        'human.pedestrian.personal_mobility': 'DontCare',
+        'human.pedestrian.personal_mobility': 'Misc',
         'human.pedestrian.police_officer': 'Pedestrian',
         'human.pedestrian.stroller': 'Misc',
         'human.pedestrian.wheelchair': 'Misc',
@@ -124,11 +124,11 @@ nuscenes_dict = {
         'vehicle.truck': 'VEHICLE'
     },
     'to_udacity': {
-        'animal': 'UNKNOWN',
+        'animal': None,
         'human.pedestrian.adult': 'Pedestrian',
         'human.pedestrian.child': 'Pedestrian',
         'human.pedestrian.construction_worker': 'Pedestrian',
-        'human.pedestrian.personal_mobility': 'DontCare',
+        'human.pedestrian.personal_mobility': None,
         'human.pedestrian.police_officer': 'Pedestrian',
         'human.pedestrian.stroller': None,
         'human.pedestrian.wheelchair': None,
@@ -137,14 +137,14 @@ nuscenes_dict = {
         'movable_object.pushable_pullable': None,
         'movable_object.trafficcone': None,
         'static_object.bicycle_rack': None,
-        'vehicle.bicycle': 'CYCLIST',
-        'vehicle.bus.bendy': 'VEHICLE',
-        'vehicle.bus.rigid': 'VEHICLE',
+        'vehicle.bicycle': None,
+        'vehicle.bus.bendy': 'Car',
+        'vehicle.bus.rigid': 'Car',
         'vehicle.car': 'Car',
         'vehicle.construction': None,
         'vehicle.emergency.ambulance': 'Car',
         'vehicle.emergency.police': 'Car',
-        'vehicle.motorcycle': 'CYCLIST',
+        'vehicle.motorcycle': None,
         'vehicle.trailer': None,
         'vehicle.truck': 'Truck'
     },
