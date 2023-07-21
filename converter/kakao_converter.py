@@ -158,7 +158,6 @@ class kakao:
                 points = np.fromfile(src_path, dtype=np.float32)
                 points = points.reshape(5, -1)
                 points = points.T
-                print(points)
                 if 'like' not in self.dst_db_type:
                     points = self.lid_rot[:3, :3] @ points.T
                     points = points.T
