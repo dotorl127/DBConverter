@@ -155,9 +155,7 @@ class kakao:
                 o3d.io.write_point_cloud(dst_path, pcd)
             else:
                 # TODO: check point cloud array shape
-                points = np.fromfile(src_path, dtype=np.float32)
-                points = points.reshape(5, -1)
-                points = points.T
+                points = np.fromfile(src_path, dtype=np.float32).reshape(-1, 5)[:, :3]
                 if 'like' not in self.dst_db_type:
                     points = self.lid_rot[:3, :3] @ points.T
                     points = points.T
