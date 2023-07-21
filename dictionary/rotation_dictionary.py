@@ -21,9 +21,9 @@ lid_rot = {
         'kakao': np.eye(3, dtype=np.float32)
     },
     'kakao': {
-        'kitti': np.eye(3, dtype=np.float32),
-        'waymo': np.eye(3, dtype=np.float32),
-        'nuscenes': Q(axis=[0, 0, 1], angle=np.pi / 2).rotation_matrix,
+        'kitti': Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix,
+        'waymo': Q(axis=[0, 0, 1], angle=-np.pi / 2).rotation_matrix,
+        'nuscenes': np.eye(3, dtype=np.float32),
         'udacity': np.eye(3, dtype=np.float32)
     }
 }
