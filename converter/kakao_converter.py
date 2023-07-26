@@ -287,6 +287,9 @@ class kakao:
                                 min(self.img_size[camera_name][0], bbox_crop[2]),
                                 min(self.img_size[camera_name][1], bbox_crop[3]))
 
+                        if bbox == (0, 0, self.img_size[camera_name][0], self.img_size[camera_name][1]):
+                            continue
+
                         x1, y1, x2, y2 = bbox
 
                         if 'like' not in self.dst_db_type:
