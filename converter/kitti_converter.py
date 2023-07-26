@@ -49,8 +49,7 @@ class kitti:
         self.rt_mat = np.eye(4)
 
     def label_convert(self, label: kitti_label):
-        if 'like' not in self.dst_db_type:
-            type = kitti_dict[f'to_{self.dst_db_type}'][label.class_name]
+        type = kitti_dict[f'to_{self.dst_db_type}'][label.class_name]
 
         if self.dst_db_type == 'waymo':
             w = int(label.label_2d.x2 - label.label_2d.x1)
@@ -70,8 +69,6 @@ class kitti:
                    f'{label.label_2d.x1:4f}, {label.label_2d.y1:4f}, {label.label_2d.x2:4f}, {label.label_2d.y2:4f}'
         elif self.dst_db_type == 'udacity':
             return f'{label.label_2d.x1:4f}, {label.label_2d.y1:4f}, {label.label_2d.x2:4f}, {label.label_2d.y2:4f}, {type}'
-        elif 'like' in self.dst_db_type:
-            return
 
     def convert(self):
         print(f'Convert Kitti to {self.dst_db_type} Dataset.')

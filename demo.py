@@ -32,7 +32,7 @@ if __name__ == '__main__':
         points_dir_name = None
         lid_lst = os.listdir(f'{root_path}lidar/')
         for lid_name in lid_lst:
-            if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar[00]']:
+            if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar(00)']:
                 points_dir_name = lid_name
 
         filenames = sorted(os.listdir(f'{root_path}lidar/{points_dir_name}'))
@@ -44,10 +44,10 @@ if __name__ == '__main__':
             labels_3d = None
             labels_cls = None
             for lid_name in lid_lst:
-                if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar[00]']:
+                if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar(00)']:
                     if pts_ext != 'pcd':
                         points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}',
-                                             dtype=np.float32).reshape(-1, 3)
+                                             dtype=np.float32).reshape(-1, 4)[:, :3]
                     else:
                         pcd = o3d.io.read_point_cloud(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}')
                         points = np.asarray(pcd.points)

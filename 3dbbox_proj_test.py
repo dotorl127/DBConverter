@@ -7,7 +7,7 @@ from pyquaternion import Quaternion as Q
 
 dir_path = '/home/moon/DATASET/kakao2kitti-like/'
 dir_names = os.listdir(f'{dir_path}/camera')
-idx = 10
+idx = 30
 
 # read img
 for dir_name in dir_names:

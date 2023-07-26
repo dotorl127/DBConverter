@@ -139,6 +139,7 @@ class kakao:
         camera_names = ['camera(00)', 'camera(01)', 'camera(02)', 'camera(03)', 'camera(04)', 'camera(05)']
 
         for idx, frame in enumerate(tqdm(self.kakaodb.frame[:100])):
+            # KAKAO dataset LiDAR model : HESAI Pandar128
             frame_data_uuid = frame['data']['lidar(00)']
             frame_data = self.kakaodb.get('frame_data', frame_data_uuid)
             src_path = f'{self.src_dir}sensor/{frame_data["name"]}/{frame_data["file_name"]}.{frame_data["file_format"]}'
@@ -154,11 +155,13 @@ class kakao:
                 pcd.points = o3d.utility.Vector3dVector(points)
                 o3d.io.write_point_cloud(dst_path, pcd)
             else:
-                # TODO: check point cloud array shape
-                points = np.fromfile(src_path, dtype=np.float32).reshape(-1, 5)[:, :3]
+                # N * [x, y, z, intensity, time]
+                points = np.fromfile(src_path, dtype=np.float32).reshape(5, -1).T[:, :4]
+                intensity = points[:, 3]
                 if 'like' not in self.dst_db_type:
-                    points = self.lid_rot[:3, :3] @ points.T
+                    points = self.lid_rot[:3, :3] @ points[:, :3].T
                     points = points.T
+                    points[:, 3] = intensity
                 points.astype(np.float32).tofile(dst_path)
 
             sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
@@ -231,6 +234,8 @@ class kakao:
                         f.write(f'Tr_imu_to_cam : '
                                 f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
 
+            no_label_sensor_name = set()
+
             for anno_uuid in frame['anns']:
                 frame_annotation = self.kakaodb.get('frame_annotation', anno_uuid)
 
@@ -284,6 +289,8 @@ class kakao:
                         else:
                             cls = frame_annotation['category_name']
 
+                        no_label_sensor_name.add(camera_name)
+
                         with open(f'{self.dst_dir}label/{camera_name}/{idx:06d}.txt', 'a') as f:
                             if self.dst_db_type != 'udacity':
                                 if 'kitti' not in self.dst_db_type:
@@ -309,3 +316,8 @@ class kakao:
                                             f'0, 0, {x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f}\n')
                             else:
                                 f.write(f'{x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f}, {cls}\n')
+
+            for camera_name in camera_names:
+                if camera_name not in no_label_sensor_name:
+                    with open(f'{self.dst_dir}label/{camera_name}/{idx:06d}.txt', 'a') as f:
+                        f.write('')
