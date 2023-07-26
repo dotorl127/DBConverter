@@ -78,12 +78,16 @@ class waymo:
         for camera in frame.context.camera_calibrations:
             T_cam_to_vehicle = np.array(camera.extrinsic.transform).reshape(4, 4)
 
-            cam_intrinsic = np.zeros((4, 4))
-            cam_intrinsic[0, 0] = camera.intrinsic[0]
-            cam_intrinsic[1, 1] = camera.intrinsic[1]
-            cam_intrinsic[0, 2] = camera.intrinsic[2]
-            cam_intrinsic[1, 2] = camera.intrinsic[3]
-            cam_intrinsic[2, 2] = 1
+            k = np.zeros((3, 3))
+            k[0, 0] = camera.intrinsic[0]
+            k[1, 1] = camera.intrinsic[1]
+            k[0, 2] = camera.intrinsic[2]
+            k[1, 2] = camera.intrinsic[3]
+            k[2, 2] = 1
+
+            p = np.zeros((3, 4))
+
+            d = np.array(camera.intrinsic[4:])
 
             with open(f'{self.dst_dir}calib/{self.int_to_cam_name[camera.name]}/{idx:06d}.txt', 'w') as f:
                 if 'kitti' in self.dst_db_type:
@@ -91,8 +95,12 @@ class waymo:
                     self.cam_rot_dict[int(camera.name)] = Tr_velo_to_cam
                     Tr_imu_to_velo = self.lid_rot @ np.linalg.inv(lid_extrinsic)
 
-                    line = ', '.join(map(str, cam_intrinsic.reshape(-1).tolist())) + '\n'
+                    line = ', '.join(map(str, k.reshape(-1).tolist())) + '\n'
+                    f.write(f'K: {line}')
+                    line = ', '.join(map(str, p.reshape(-1).tolist())) + '\n'
                     f.write(f'P: {line}')
+                    line = ', '.join(map(str, d.reshape(-1).tolist())) + '\n'
+                    f.write(f'D: {line}')
                     line = ', '.join(map(str, np.eye(3).reshape(-1).tolist())) + '\n'
                     f.write(f'R0_rect: {line}')
                     line = ', '.join(map(str, Tr_velo_to_cam.reshape(-1).tolist())) + '\n'
@@ -105,7 +113,7 @@ class waymo:
                     rotation = Rotation.from_matrix((self.cam_rot @ T_cam_to_vehicle)[:3, :3])
                     line = ', '.join(map(str, rotation.as_quat().reshape(-1).tolist())) + '\n'
                     f.write(f'{self.int_to_cam_name[camera.name]}_rotation: {line}')
-                    line = ', '.join(map(str, cam_intrinsic.reshape(-1).tolist())) + '\n'
+                    line = ', '.join(map(str, k.reshape(-1).tolist())) + '\n'
                     f.write(f'{self.int_to_cam_name[camera.name]}_intrinsic: {line}')
                     line = ', '.join(map(str, lid_extrinsic[:3, 3].reshape(-1).tolist())) + '\n'
                     f.write(f'TOP_translation: {line}')

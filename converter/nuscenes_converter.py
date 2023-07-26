@@ -183,8 +183,8 @@ class nuscenes:
                 imu_to_velo_kitti = np.zeros((3, 4))  # Dummy values.
 
                 # Projection matrix.
-                cam_intrinsic = np.zeros((4, 4))
-                cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']  # Cameras are always rectified.
+                p = np.zeros((4, 4))
+                p[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']  # Cameras are always rectified.
 
                 # Create KITTI style transforms.
                 velo_to_cam_rot = velo_to_cam_kitti[:3, :3]
@@ -208,7 +208,9 @@ class nuscenes:
                 if 'kitti' in self.dst_db_type:
                     # Create calibration file.
                     kitti_transforms = dict()
-                    kitti_transforms['P'] = cam_intrinsic  # Left camera transform.
+                    kitti_transforms['K'] = np.zeros((3, 3))  # Left camera transform.
+                    kitti_transforms['P'] = p[:3, :4]  # Left camera transform.
+                    kitti_transforms['D'] = np.zeros((1, 5))  # Left camera transform.
                     kitti_transforms['R0_rect'] = r0_rect.rotation_matrix  # Cameras are already rectified.
                     kitti_transforms['Tr_velo_to_cam'] = np.hstack((velo_to_cam_rot, velo_to_cam_trans.reshape(3, 1)))
                     kitti_transforms['Tr_imu_to_velo'] = imu_to_velo_kitti
@@ -224,9 +226,7 @@ class nuscenes:
                 else:
                     calib_path = f'{self.dst_dir}calib/{cam_name}/{idx:06d}.txt'
                     with open(calib_path, "w") as calib_file:
-                        mat = np.eye(4)
-                        mat[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
-                        line = ', '.join(map(str, mat.reshape(-1).tolist())) + '\n'
+                        line = ', '.join(map(str, self.calib_dict[cam_name]['K'].reshape(-1).tolist())) + '\n'
                         calib_file.write(f'{cam_name}_intrinsic: {line}')
                         line = ', '.join(map(str, np.linalg.inv(ego_to_cam).reshape(-1).tolist())) + '\n'
                         calib_file.write(f'{cam_name}_extrinsic: {line}')
@@ -287,10 +287,10 @@ class nuscenes:
                             if box_cam_kitti.center[2] < 0:
                                 continue
 
-                            cam_intrinsic = np.zeros((4, 4))
-                            cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
+                            p = np.zeros((4, 4))
+                            p[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
 
-                            bbox_2d = self.project_kitti_box_to_image(box_cam_kitti, cam_intrinsic, imsize=imsize)
+                            bbox_2d = self.project_kitti_box_to_image(box_cam_kitti, p, imsize=imsize)
 
                             if bbox_2d == (0, 0, 0, 0) and cam_name != 'CAM_FRONT':
                                 continue
@@ -320,11 +320,11 @@ class nuscenes:
 
                             if box_cam_kitti.center[1] < 0: continue
 
-                            cam_intrinsic = np.zeros((3, 4))
-                            cam_intrinsic[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
+                            p = np.zeros((4, 4))
+                            p[:3, :3] = self.calib_dict[cam_name]['camera_intrinsic']
 
                             # Project 3d box to 2d box in image, ignore box if it does not fall inside.
-                            bbox_2d = self.project_kitti_box_to_image(box_cam_kitti, cam_intrinsic, imsize=imsize)
+                            bbox_2d = self.project_kitti_box_to_image(box_cam_kitti, p, imsize=imsize)
 
                             if bbox_2d == (0, 0, 0, 0) and cam_name != 'CAM_FRONT':
                                 continue

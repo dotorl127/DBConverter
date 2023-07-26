@@ -187,8 +187,12 @@ class kakao:
                 self.img_size[camera_name] = (img_shape[1], img_shape[0])
 
                 sensor_data = self.kakaodb.get('sensor', frame_data['sensor_uuid'])
-                intrinsic = np.eye(4)
-                intrinsic[:3, :3] = sensor_data['intrinsic']['parameter']
+                k = np.zeros((3, 3))
+
+                p = np.zeros((3, 4))
+                p[:3, :3] = sensor_data['intrinsic']['parameter']
+
+                d = np.zeros((1, 5))
 
                 loc = list(map(float, sensor_data['translation']))
                 rot = list(map(float, sensor_data['rotation']))
@@ -197,13 +201,13 @@ class kakao:
                 extrinsic[:3, 3] = loc
 
                 self.calib_dict[sensor_data['name']] = {}
-                self.calib_dict[sensor_data['name']]['intrinsic'] = intrinsic
+                self.calib_dict[sensor_data['name']]['p'] = p
                 self.calib_dict[sensor_data['name']]['extrinsic'] = extrinsic
 
                 with open(f'{self.dst_dir}calib/{camera_name}/{idx:06d}.txt', 'w') as f:
                     if self.dst_db_type == 'nuscenes':
                         f.write(f'{camera_name}_intrinsic : '
-                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
+                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["P"].flatten())))}\n')
                         cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
                         f.write(f'{camera_name}_extrinsic : '
                                 f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
@@ -211,7 +215,7 @@ class kakao:
                                 f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
                     elif self.dst_db_type == 'waymo':
                         f.write(f'{camera_name}_intrinsic : '
-                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
+                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["P"].flatten())))}\n')
                         cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
                         f.write(f'{camera_name}_extrinsic : '
                                 f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
@@ -225,8 +229,12 @@ class kakao:
                         f.write(f'lidar(00)_extrinsic : '
                                 f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
                     elif 'kitti' in self.dst_db_type:
-                        f.write(f'P : '
-                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["intrinsic"].flatten())))}\n')
+                        f.write(f'K: '
+                                f'{", ".join(list(map(str, k.flatten())))}\n')
+                        f.write(f'P: '
+                                f'{", ".join(list(map(str, self.calib_dict[camera_name]["p"].flatten())))}\n')
+                        f.write(f'D: '
+                                f'{", ".join(list(map(str, d.flatten())))}\n')
                         cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
                         lid2cam = np.linalg.inv(cam_extrinsic) @ lid_extrinsic
                         f.write(f'Tr_velo_to_cam : '
@@ -262,7 +270,7 @@ class kakao:
                         if cam_z < 0: continue
                         corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h,
                                                    Q(axis=(0, 1, 0), angle=yaw).rotation_matrix)
-                        imcorners = self.get_projected_corners(corners, self.calib_dict[camera_name]['intrinsic'])[:2]
+                        imcorners = self.get_projected_corners(corners, self.calib_dict[camera_name]['p'])[:2]
 
                         if np.all(abs(imcorners[0]) > self.img_size[camera_name][0]) or \
                                 np.all(abs(imcorners[1]) > self.img_size[camera_name][1]): continue
@@ -270,19 +278,17 @@ class kakao:
 
                         # Crop bbox to prevent it extending outside image.
                         bbox_crop = tuple(max(0, b) for b in bbox)
+
+                        # Detect if a cropped box is empty.
+                        if bbox_crop[0] >= bbox_crop[2] or bbox_crop[1] >= bbox_crop[3]:
+                            continue
+
                         bbox = (min(self.img_size[camera_name][0], bbox_crop[0]),
                                 min(self.img_size[camera_name][0], bbox_crop[1]),
                                 min(self.img_size[camera_name][0], bbox_crop[2]),
                                 min(self.img_size[camera_name][1], bbox_crop[3]))
 
-                        # Detect if a cropped box is empty.
-                        if bbox_crop[0] >= bbox_crop[2] or bbox_crop[1] >= bbox_crop[3]:
-                            bbox = (0, 0, 0, 0)
-
                         x1, y1, x2, y2 = bbox
-
-                        if bbox == (0, 0, 0, 0):
-                            continue
 
                         if 'like' not in self.dst_db_type:
                             cls = kakao_dict[f'to_{self.dst_db_type}'][frame_annotation['category_name']]

@@ -140,9 +140,13 @@ class kitti:
 
             with open(f'{self.dst_dir}calib/image_2/{index:06d}.txt', 'w') as f:
                 if 'like' in self.dst_db_type:
-                    intrinsic = self.calib_dict['P2']
-                    line = ', '.join(map(str, intrinsic.reshape(-1).tolist())) + '\n'
-                    f.write(f'P2: {line}')
+                    line = ', '.join(map(str, np.zeros((3, 3)).flatten())) + '\n'
+                    f.write(f'K: {line}')
+                    p = self.calib_dict['P2']
+                    line = ', '.join(map(str, p.reshape(-1).tolist())) + '\n'
+                    f.write(f'P: {line}')
+                    line = ', '.join(map(str, np.zeros((1, 5)).flatten())) + '\n'
+                    f.write(f'D: {line}')
                     line = ', '.join(map(str, self.calib_dict['R0_rect'].reshape(-1).tolist())) + '\n'
                     f.write(f'R0_rect: {line}')
                     line = ', '.join(map(str, self.calib_dict['Tr_velo_to_cam'].reshape(-1).tolist())) + '\n'

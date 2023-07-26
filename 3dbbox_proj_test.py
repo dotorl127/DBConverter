@@ -7,7 +7,7 @@ from pyquaternion import Quaternion as Q
 
 dir_path = '/home/moon/DATASET/kakao2kitti-like/'
 dir_names = os.listdir(f'{dir_path}/camera')
-idx = 30
+idx = 0
 
 # read img
 for dir_name in dir_names:
@@ -16,7 +16,10 @@ for dir_name in dir_names:
     # read calibration
     with open(f'{dir_path}calib/{dir_name}/{idx:06d}.txt', 'r') as cf:
         datas = cf.readlines()
-        intrinsic = np.array(list(map(float, datas[0].split(': ')[1].split(', ')))).reshape(4, 4)
+        intrinsic = np.eye(4)
+        intrinsic[:3, :3] = np.array(list(map(float, datas[0].split(': ')[1].split(', ')))).reshape(3, 3)
+        if np.all(intrinsic.flatten()[:-1] == 0):
+            intrinsic[:3, :4] = np.array(list(map(float, datas[1].split(': ')[1].split(', ')))).reshape(3, 4)
 
     # read label
     with open(f'{dir_path}label/{dir_name}/{idx:06d}.txt', 'r') as lf:
