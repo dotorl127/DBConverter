@@ -236,9 +236,9 @@ class kakao:
                                 f'{", ".join(list(map(str, d.flatten())))}\n')
                         cam_extrinsic = self.cam_rot @ self.calib_dict[camera_name]["extrinsic"]
                         lid2cam = np.linalg.inv(cam_extrinsic) @ lid_extrinsic
-                        f.write(f'Tr_velo_to_cam : '
+                        f.write(f'Tr_velo_to_cam: '
                                 f'{", ".join(list(map(str, lid2cam.flatten())))}\n')
-                        f.write(f'Tr_imu_to_cam : '
+                        f.write(f'Tr_imu_to_cam: '
                                 f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
 
             no_label_sensor_name = set()
