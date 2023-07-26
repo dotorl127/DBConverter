@@ -221,11 +221,10 @@ class kakao:
                                 f'{", ".join(list(map(str, cam_extrinsic.flatten())))}\n')
                         f.write(f'{camera_name}_width : 1920\n')
                         f.write(f'{camera_name}_height : 1200\n')
-                        f.write(f'{camera_name}_rolling_shutter_direction : \n')
-                        f.write(f'lidar(00)_beam_inclinations : \n')
-                        # TODO: output LiDAR fov
-                        f.write(f'lidar(00)_beam_inclination_min : \n')
-                        f.write(f'lidar(00)_beam_inclination_max : \n')
+                        f.write(f'{camera_name}_rolling_shutter_direction : -1\n')
+                        f.write(f'lidar(00)_beam_inclinations : -1\n')
+                        f.write(f'lidar(00)_beam_inclination_min : -1\n')
+                        f.write(f'lidar(00)_beam_inclination_max : -1\n')
                         f.write(f'lidar(00)_extrinsic : '
                                 f'{", ".join(list(map(str, lid_extrinsic.flatten())))}\n')
                     elif 'kitti' in self.dst_db_type:
