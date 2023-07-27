@@ -66,6 +66,12 @@ python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_di
 ```
 python demo.py --root_dir {dataset path to load} --dataset_type {dataset type name to visualize} --vis_type {visualize type name[2d, 3d]}
 ```
+**2d**  
+![2d.png](..%2F..%2FPictures%2F2d.png)
+**3d**  
+![3d.png](..%2F..%2FPictures%2F3d.png)
+**project**  
+![project.png](..%2F..%2FPictures%2Fproject.png)
 
 ## [KITTI](https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=2d)
 ### Directory hierarchy

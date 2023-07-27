@@ -27,7 +27,8 @@ if __name__ == '__main__':
     camera_names = sorted(os.listdir(f'{root_path}camera/'))
 
     if args.vis_type == '3d':
-        assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'kitti-like'], f'Udacity dataset does not support 3D visualize'
+        assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'kitti-like'], \
+            f'Udacity dataset does not support 3D visualize'
         assert os.path.exists(f'{root_path}lidar/'), f'LiDAR point cloud data has not found'
 
         points_dir_name = None
@@ -40,7 +41,7 @@ if __name__ == '__main__':
         pts_ext = filenames[0][-3:]
         filenames = [filename.rstrip(pts_ext) for filename in filenames]
 
-        for filename in filenames[10:]:
+        for filename in filenames:
             points = None
             labels_3d = None
             labels_cls = None
