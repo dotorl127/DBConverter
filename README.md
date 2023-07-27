@@ -67,11 +67,11 @@ python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_di
 python demo.py --root_dir {dataset path to load} --dataset_type {dataset type name to visualize} --vis_type {visualize type name[2d, 3d]}
 ```
 **2d**  
-![2d.png](..%2F..%2FPictures%2F2d.png)
+![2d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/83e6047f-3d7d-4dfd-80be-4247c8909f90)
 **3d**  
-![3d.png](..%2F..%2FPictures%2F3d.png)
+![3d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/9c34a784-b870-4303-b804-720cd1b0e2cd)
 **project**  
-![project.png](..%2F..%2FPictures%2Fproject.png)
+![project](https://github.com/dotorl127/KetiDBconverter/assets/35759912/b95dd94b-8763-4372-b051-59956f8cf8db)
 
 ## [KITTI](https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=2d)
 ### Directory hierarchy
