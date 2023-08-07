@@ -83,6 +83,14 @@ class kakao_parser:
         return self._token2ind[table_name][token]
 
 
+def normalize_angle(angle):
+    if angle < -np.pi:
+        angle += np.pi * 2
+    elif angle > np.pi:
+        angle -= np.pi * 2
+    return angle
+
+
 class kakao:
     def __init__(self,
                  src_dir: str = None,
@@ -133,13 +141,6 @@ class kakao:
         points = points / points[2:3, :].repeat(3, 0).reshape(3, nbr_points)
 
         return points
-
-    def normalize_angle(self, angle):
-        if angle < -np.pi:
-            angle += np.pi * 2
-        elif angle > np.pi:
-            angle -= np.pi * 2
-        return angle
 
     def convert(self):
         print(f'Convert kakao to {self.dst_db_type} Dataset.')
@@ -259,7 +260,7 @@ class kakao:
                     yaw_, _, _ = Q(*frame_annotation['geometry']['orientation']).yaw_pitch_roll
 
                     if 'like' in self.dst_db_type:
-                        yaw = self.normalize_angle(yaw_ + np.pi / 2)
+                        yaw = normalize_angle(yaw_ + np.pi / 2)
                         if not os.path.exists(f'{self.dst_dir}label/lidar(00)'):
                             os.makedirs(f'{self.dst_dir}label/lidar(00)')
 
@@ -271,7 +272,7 @@ class kakao:
                         rt_mat = np.linalg.inv(self.calib_dict[camera_name]['extrinsic']) @ lid_extrinsic
                         cam_x, cam_y, cam_z, _ = rt_mat @ np.array([x, y, z, 1]).T
                         cam_yaw, _, _ = Q(matrix=np.linalg.inv(self.calib_dict[camera_name]['extrinsic'][:3, :3])).yaw_pitch_roll
-                        yaw = self.normalize_angle(-yaw_ - cam_yaw)
+                        yaw = normalize_angle(-yaw_ - cam_yaw)
 
                         if cam_z < 0: continue
                         corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h,
