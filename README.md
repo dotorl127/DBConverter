@@ -224,7 +224,7 @@ type, corners(x,y coordinates of the 8 vertices of the cuboid)
 ```
 bbox_pcd3d:
 ```commandline
-type, x, y, z, w, l, h, orientation(quaternion) 
+type, x, y, z, w, l, h, orientation(quaternion)
 ```
 
 ### Calibration format
