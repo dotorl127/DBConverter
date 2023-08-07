@@ -91,6 +91,37 @@ def normalize_angle(angle):
     return angle
 
 
+def get_projected_corners(points, intrinsic):
+    nbr_points = points.shape[1]
+
+    # Do operation in homogenous coordinates.
+    points = np.concatenate((points, np.ones((1, nbr_points))))
+    points = np.dot(intrinsic, points)
+    points = points[:3, :]
+
+    points = points / points[2:3, :].repeat(3, 0).reshape(3, nbr_points)
+
+    return points
+
+
+def get_corners(x, y, z, w, l, h, rot):
+    # 3D bounding box corners. (Convention: x points right, y to the down, z forward)
+    x_corners = l / 2 * np.array([1, 1, 1, 1, -1, -1, -1, -1])
+    y_corners = h / 2 * np.array([1, -1, -1, 1, 1, -1, -1, 1])
+    z_corners = w / 2 * np.array([1, 1, -1, -1, 1, 1, -1, -1])
+    corners = np.vstack((x_corners, y_corners, z_corners))
+
+    # Rotate
+    corners = np.dot(rot, corners)
+
+    # Translate
+    corners[0, :] = corners[0, :] + x
+    corners[1, :] = corners[1, :] + y
+    corners[2, :] = corners[2, :] + z
+
+    return corners
+
+
 class kakao:
     def __init__(self,
                  src_dir: str = None,
@@ -112,35 +143,6 @@ class kakao:
         self.lid_rot = check_valid_mat(self.lid_rot)
         self.calib_dict = {}
         self.img_size = {}
-
-    def get_corners(self, x, y, z, w, l, h, rot):
-        # 3D bounding box corners. (Convention: x points right, y to the down, z forward)
-        x_corners = l / 2 * np.array([1, 1, 1, 1, -1, -1, -1, -1])
-        y_corners = h / 2 * np.array([1, -1, -1, 1, 1, -1, -1, 1])
-        z_corners = w / 2 * np.array([1, 1, -1, -1, 1, 1, -1, -1])
-        corners = np.vstack((x_corners, y_corners, z_corners))
-
-        # Rotate
-        corners = np.dot(rot, corners)
-
-        # Translate
-        corners[0, :] = corners[0, :] + x
-        corners[1, :] = corners[1, :] + y
-        corners[2, :] = corners[2, :] + z
-
-        return corners
-
-    def get_projected_corners(self, points, intrinsic):
-        nbr_points = points.shape[1]
-
-        # Do operation in homogenous coordinates.
-        points = np.concatenate((points, np.ones((1, nbr_points))))
-        points = np.dot(intrinsic, points)
-        points = points[:3, :]
-
-        points = points / points[2:3, :].repeat(3, 0).reshape(3, nbr_points)
-
-        return points
 
     def convert(self):
         print(f'Convert kakao to {self.dst_db_type} Dataset.')
@@ -275,9 +277,9 @@ class kakao:
                         yaw = normalize_angle(-yaw_ - cam_yaw)
 
                         if cam_z < 0: continue
-                        corners = self.get_corners(cam_x, cam_y, cam_z, w, l, h,
+                        corners = get_corners(cam_x, cam_y, cam_z, w, l, h,
                                                    Q(axis=(0, 1, 0), angle=yaw).rotation_matrix)
-                        imcorners = self.get_projected_corners(corners, self.calib_dict[camera_name]['p'])[:2]
+                        imcorners = get_projected_corners(corners, self.calib_dict[camera_name]['p'])[:2]
 
                         if np.all(abs(imcorners[0]) > self.img_size[camera_name][0]) or \
                                 np.all(abs(imcorners[1]) > self.img_size[camera_name][1]): continue
