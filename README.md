@@ -240,18 +240,18 @@ type, x, y, z, w, l, h, orientation(quaternion)
 ```commandline
 Values  Name         Description
 ----------------------------------------------------------------------------
-   1    type         A string which describes the type of object. 
-										 The number of type is not limited.
-										 The string type name of the original input dataset is used without
-										 any modification. 
+   1    type         A string which describes the type of object.
+                     The number of type is not limited.
+                     The string type name of the original input dataset is used without
+                     any modification. 
    1    truncated    Float from 0 (non-truncated) to 1 (truncated), where
                      truncated refers to the object leaving image boundaries
-										 (If not available, -1 is inserted)
+                     (If not available, -1 is inserted)
    1    occluded     Integer (0,1,2,3) indicating occlusion state:
                      0 = fully visible, 1 = partly occluded
                      2 = largely occluded, 3 = unknown (or if not available)
    1    alpha        Observation angle of object, ranging [-pi..pi]
-										 (If not available, -99 is inserted) 
+                     (If not available, -99 is inserted) 
    4    bbox         2D bounding box of object in the image (0-based index):
                      contains left, top, right, bottom pixel coordinates
                      Available for CAMERA sensors only (If otherwise, -1 is inserted)
