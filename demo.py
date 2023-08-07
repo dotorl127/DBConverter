@@ -57,7 +57,7 @@ if __name__ == '__main__':
                         labels_3d = []
                         labels_cls = []
                         lines = f.readlines()
-                        for line in lines[:30]:
+                        for line in lines:
                             label = line.strip().split(', ')
                             # label 3d format is [class_name, x, y, z, width, length, height, rotation_z]
                             _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
