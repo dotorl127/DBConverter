@@ -67,7 +67,7 @@ python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_di
 python demo.py --root_path {dataset path to load} --dataset_type {dataset type name to visualize} --vis_type {visualize type name[2d, 3d]}
 ```
 **2d**  
-![2d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/83e6047f-3d7d-4dfd-80be-4247c8909f90)
+![2d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/e9c658e7-19dd-47a1-8445-067e34efcbd6)
 **3d**  
 ![3d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/9c34a784-b870-4303-b804-720cd1b0e2cd)
 **project**  
