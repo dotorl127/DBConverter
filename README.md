@@ -66,7 +66,7 @@ python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_di
 ```commandline
 python demo.py --root_path {dataset path to load} --dataset_type {dataset type name to visualize} --vis_type {visualize type name[2d, 3d]}
 ```
-**2d**  
+**2d**
 ![2d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/58e65e12-cf6d-47e7-8371-bda403174431)
 **3d**  
 ![3d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/9c34a784-b870-4303-b804-720cd1b0e2cd)
@@ -154,11 +154,11 @@ root
 │  │  ├─ scene.json
 │  │  ├─ sensor.json
 │  └─ └─ visibility.json
-├─ v1.0-trainval
-│  ├─ maps
-│  ├─ samples
-│  ├─ sweeps
-└─ └─ v1.0-trainval
+└─ v1.0-trainval
+   ├─ maps
+   ├─ samples
+   ├─ sweeps
+   └─ v1.0-trainval
 ```
 ### Label format
 check sample_annotation json file  
@@ -180,10 +180,10 @@ type, translation(center x, y, z), size(width, height, length), rotation(quatern
 ### Directory hierarchy
 ```commandline
 root
-├─ object-detection-crowdai
-│  ├─ {Frame}.jpg
-│  ├─ ...
-└─ └─ labels.csv
+└─ object-detection-crowdai
+   ├─ {Frame}.jpg
+   ├─ ...
+   └─ labels.csv
 ```
 ### Label format
 ```commandline

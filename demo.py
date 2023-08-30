@@ -47,22 +47,22 @@ if __name__ == '__main__':
             labels_cls = None
             for lid_name in lid_lst:
                 if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar(00)']:
-                    if pts_ext != 'pcd':
-                        points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}',
-                                             dtype=np.float32).reshape(-1, 4)[:, :3]
-                    else:
-                        pcd = o3d.io.read_point_cloud(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}')
-                        points = np.asarray(pcd.points)
+                    # if pts_ext != 'pcd':
+                    #     points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}',
+                    #                          dtype=np.float32).reshape(-1, 4)[:, :3]
+                    # else:
+                    pcd = o3d.io.read_point_cloud(f'/media/SSD/DATASET/kitti-like/nusc2kitti-like/radar/RADAR_FRONT/000000.pcd')
+                    points = np.asarray(pcd.points)
                     with open(f'{root_path}label/{lid_name}/{filename}txt', 'r') as f:
                         labels_3d = []
                         labels_cls = []
                         lines = f.readlines()
-                        for line in lines:
-                            label = line.strip().split(', ')
-                            # label 3d format is [class_name, x, y, z, width, length, height, rotation_z]
-                            _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
-                            labels_3d.append(label_3d)
-                            labels_cls.append(label_cls)
+                        # for line in lines:
+                        #     label = line.strip().split(', ')
+                        #     # label 3d format is [class_name, x, y, z, width, length, height, rotation_z]
+                        #     _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
+                        #     labels_3d.append(label_3d)
+                        #     labels_cls.append(label_cls)
 
             V.visualization(points, labels_3d, labels_cls)
             mlab.show(stop=True)

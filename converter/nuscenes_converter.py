@@ -1,4 +1,5 @@
 import os
+from shutil import copyfile
 
 from PIL import Image
 from pyquaternion import Quaternion
@@ -153,9 +154,7 @@ class nuscenes:
                 dst_rad_path = f'{self.dst_dir}radar/{rad_name}/{idx:06d}.pcd'
                 if not os.path.exists(dst_rad_path):
                     assert not dst_rad_path.endswith('.pcd.bin')
-                    pcl = RadarPointCloud.from_file(src_rad_path)
-                    with open(dst_rad_path, "w") as rad_file:
-                        pcl.points.T.tofile(rad_file)
+                    copyfile(src_rad_path, dst_rad_path)
 
                 with open(f'{self.dst_dir}calib/{rad_name}/{idx:06d}.txt', 'w') as f:
                     line = ', '.join(map(str, transform_matrix(self.calib_dict[rad_name]['translation'],
