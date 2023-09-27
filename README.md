@@ -80,7 +80,7 @@ python KetiDBconverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
 -vt, --vis_type     : Type of visualization[2d, 3d]
 ```
 ```commandline
-python demo.py -r /path/to/KITTI -dt kitti -vt 3d
+python demo.py -i /path/to/KITTI -dt kitti -vt 3d
 ```
 **2d**
 ![2d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/58e65e12-cf6d-47e7-8371-bda403174431)
