@@ -69,6 +69,7 @@ KetiDBconverter
 -t, --tgt_db_type : Dataset type to convert [KITTI, Waymo, Nuscenes, Udacity]
 -c, --config_path : Dataset configuration yaml file path
 ```
+**example commandline**
 ```commandline
 python KetiDBconverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
 ```
@@ -79,6 +80,7 @@ python KetiDBconverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
 -dt, --dataset_type : Type Name of Dataset to Visulization
 -vt, --vis_type     : Type of visualization [2d, 3d]
 ```
+**example commandline**
 ```commandline
 python demo.py -i /path/to/KITTI -dt kitti -vt 3d
 ```
