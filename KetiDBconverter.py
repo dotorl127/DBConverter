@@ -2,8 +2,6 @@ import os
 import argparse
 import yaml
 
-from converter import kitti_converter, nuscenes_converter, waymo_converter, udacity_converter, kakao_converter
-
 
 class KetiDBconverter(object):
     def __init__(self, src_dir: str, tgt_dir: str, db_type: str, config_path: str):
@@ -51,7 +49,9 @@ class KetiDBconverter(object):
                 self.radar_dir_lst = self.config[self.src_db_type]['sensor_name_list']['radar']
 
         self.create_dir()
-        self.load_src_dataset()
+        self.db = (getattr(__import__(f'converter.{self.src_db_type.lower()}_converter',
+                                      fromlist=["format_converter"]), self.src_db_type)
+                   (self.src_path, self.tgt_path, self.tgt_db_type))
 
     def check_db_type(self, db_type: str):
         check_lst = ['kitti', 'waymo', 'nuscenes', 'udacity', 'kitti-like']
@@ -97,20 +97,6 @@ class KetiDBconverter(object):
                     path = self.tgt_path + 'radar/' + radar_dir_name
                     if not os.path.isdir(path):
                         os.makedirs(path)
-
-    def load_src_dataset(self):
-        module = None
-        if self.src_db_type == 'kitti':
-            module = kitti_converter
-        elif self.src_db_type == 'waymo':
-            module = waymo_converter
-        elif self.src_db_type == 'nuscenes':
-            module = nuscenes_converter
-        elif self.src_db_type == 'udacity':
-            module = udacity_converter
-        elif self.src_db_type == 'kakao':
-            module = kakao_converter
-        self.db = getattr(module, self.src_db_type)(self.src_path, self.tgt_path, self.tgt_db_type)
 
     def convert(self):
         convert_func = getattr(self.db, 'convert')
