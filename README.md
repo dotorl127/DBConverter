@@ -77,7 +77,7 @@ python KetiDBconverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
 ```text
 -i,  --root_path    : Directory to load Dataset
 -dt, --dataset_type : Type Name of Dataset to Visulization
--vt, --vis_type     : Type of visualization[2d, 3d]
+-vt, --vis_type     : Type of visualization [2d, 3d]
 ```
 ```commandline
 python demo.py -i /path/to/KITTI -dt kitti -vt 3d
