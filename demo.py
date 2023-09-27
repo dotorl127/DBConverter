@@ -13,9 +13,9 @@ from utils import util
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--root_path', help='Directory to load Dataset')
-    parser.add_argument('--dataset_type', help='Type Name of Dataset to Visulization')
-    parser.add_argument('--vis_type', type=str, default='3d', help='Type of visualization[2d, 3d, project]')
+    parser.add_argument('-i', '--root_path', help='Directory to load Dataset')
+    parser.add_argument('-dt', '--dataset_type', help='Type Name of Dataset to Visulization')
+    parser.add_argument('-vt', '--vis_type', type=str, default='3d', help='Type of visualization[2d, 3d, project]')
     args = parser.parse_args()
 
     assert args.dataset_type in ['kitti', 'waymo', 'nuscenes', 'udacity', 'kitti-like'], \

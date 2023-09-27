@@ -62,12 +62,25 @@ KetiDBconverter
 
 ## How to use
 ### Convert
+**Arguments**
+```text
+-i, --src_db_dir  : Directory to load Dataset
+-o, --tgt_db_dir  : Directory to save converted Dataset
+-t, --tgt_db_type : Dataset type to convert [KITTI, Waymo, Nuscenes, Udacity]
+-c, --config_path : Dataset configuration yaml file path
+```
 ```commandline
-python KetiDBconverter.py --src_db_dir {source dataset path to load} --tgt_db_dir {target dataset path to save} --tgt_db_type {dataset name to convert[kitti/kitti-like, waymo, nuscenes, udacity]}
+python KetiDBconverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
 ```
 ### Visualization
+**Arguments**
+```text
+-i, --root_path     : Directory to load Dataset
+-dt, --dataset_type : Type Name of Dataset to Visulization
+-vt, --vis_type     : Type of visualization[2d, 3d]
+```
 ```commandline
-python demo.py --root_path {dataset path to load} --dataset_type {dataset type name to visualize} --vis_type {visualize type name[2d, 3d]}
+python demo.py -r /path/to/KITTI -dt kitti -vt 3d
 ```
 **2d**
 ![2d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/58e65e12-cf6d-47e7-8371-bda403174431)

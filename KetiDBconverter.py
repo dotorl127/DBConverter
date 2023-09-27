@@ -105,10 +105,10 @@ class KetiDBconverter(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--src_db_dir', help='Directory to load Dataset')
-    parser.add_argument('--tgt_db_dir', help='Directory to save converted Dataset')
-    parser.add_argument('--tgt_db_type', help='Dataset type to convert [KITTI, Waymo, Nuscenes, Udacity]')
-    parser.add_argument('--config_path', default='db_infos.yaml', help='Dataset configuration yaml file path')
+    parser.add_argument('-i', '--src_db_dir', help='Directory to load Dataset')
+    parser.add_argument('-o', '--tgt_db_dir', help='Directory to save converted Dataset')
+    parser.add_argument('-t', '--tgt_db_type', help='Dataset type to convert [KITTI, Waymo, Nuscenes, Udacity]')
+    parser.add_argument('-c', '--config_path', default='db_infos.yaml', help='Dataset configuration yaml file path')
     args = parser.parse_args()
 
     print(args.src_db_dir)
