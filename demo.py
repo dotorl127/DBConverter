@@ -66,10 +66,12 @@ if __name__ == '__main__':
                             labels_cls.append(label_cls)
 
             vis = o3d.visualization.Visualizer()
-            vis.create_window(width=900, height=900, visible=False)
+            vis.create_window(width=900, height=900)
             V.visualization(vis, points, labels_3d, labels_cls)
             vis.get_render_option().point_size = 1.0
             vis.get_render_option().background_color = np.zeros(3)
+            vis.run()
+            vis.destroy_window()
 
     elif args.vis_type == '2d':
         filenames = sorted(os.listdir(f'{root_path}label/{camera_names[0]}'))
