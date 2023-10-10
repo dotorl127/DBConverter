@@ -1,8 +1,8 @@
 pyquaternion
 matplotlib==3.3.4
 opencv-python==4.1.2.30
-mayavi==4.8.1
 PyQt5==5.15.6
+open3d==0.16.0
 scipy~=1.10.1
 pillow~=9.4.0
 pyyaml~=6.0
@@ -13,4 +13,3 @@ tqdm==4.62.3
 numpy~=1.19.2
 pandas
 tensorflow
-open3d

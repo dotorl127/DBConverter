@@ -2,12 +2,11 @@ import os
 import argparse
 import numpy as np
 
-import mayavi.mlab as mlab
 import cv2
 import open3d as o3d
 from pyquaternion import Quaternion as Q
 
-from utils import visulize as V
+from utils import o3d_viz as V
 from utils import util
 
 
@@ -47,26 +46,31 @@ if __name__ == '__main__':
             labels_cls = None
             for lid_name in lid_lst:
                 if lid_name in ['velodyne', 'LIDAR_TOP', 'TOP', 'lidar(00)']:
-                    # if pts_ext != 'pcd':
-                    #     points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}',
-                    #                          dtype=np.float32).reshape(-1, 4)[:, :3]
-                    # else:
-                    pcd = o3d.io.read_point_cloud(f'/media/SSD/DATASET/kitti-like/nusc2kitti-like/radar/RADAR_FRONT/000000.pcd')
-                    points = np.asarray(pcd.points)
+                    if pts_ext != 'pcd':
+                        points = np.fromfile(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}',
+                                             dtype=np.float32).reshape(-1, 4)[:, :3]
+                    else:
+                        pcd = o3d.io.read_point_cloud(f'{root_path}lidar/{points_dir_name}/{filename}{pts_ext}')
+                        points = np.asarray(pcd.points)
+
                     with open(f'{root_path}label/{lid_name}/{filename}txt', 'r') as f:
                         labels_3d = []
                         labels_cls = []
                         lines = f.readlines()
-                        # for line in lines:
-                        #     label = line.strip().split(', ')
-                        #     # label 3d format is [class_name, x, y, z, width, length, height, rotation_z]
-                        #     _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
-                        #     labels_3d.append(label_3d)
-                        #     labels_cls.append(label_cls)
+                        for line in lines:
+                            label = line.strip().split(', ')
+                            # label 3d format is [class_name, x, y, z, width, length, height, rotation_z]
+                            _, label_3d, label_cls = util.parse_label(args.dataset_type, label, args.vis_type)
 
-            V.visualization(points, labels_3d, labels_cls)
-            mlab.show(stop=True)
-            mlab.close()
+                            labels_3d.append(label_3d)
+                            labels_cls.append(label_cls)
+
+            vis = o3d.visualization.Visualizer()
+            vis.create_window(width=900, height=900, visible=False)
+            V.visualization(vis, points, labels_3d, labels_cls)
+            vis.get_render_option().point_size = 1.0
+            vis.get_render_option().background_color = np.zeros(3)
+
     elif args.vis_type == '2d':
         filenames = sorted(os.listdir(f'{root_path}label/{camera_names[0]}'))
         filenames = [filename.rstrip('.txt') for filename in filenames]

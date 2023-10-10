@@ -1,4 +1,4 @@
-# KetiDBconverter
+# DBConverter
 for convert open source datasets KITTI/KITTI-like, Waymo, NuScenes and Udacity
 
 ## Sep 2023 Update
@@ -23,9 +23,9 @@ for convert open source datasets KITTI/KITTI-like, Waymo, NuScenes and Udacity
 - equal or higher **Python3.8**
 - please reference to **requirements.txt**
 
-## KetiDBconverter directory hierarchy
+## DBConverter directory hierarchy
 ```commandline
-KetiDBconverter
+DBConverter
 ├─ converter
 │  ├─ kitti_converter.py
 │  ├─ nuscenes_converter.py
@@ -40,7 +40,7 @@ KetiDBconverter
 │  └─ visulize.py
 ├─ db_infos.yaml
 ├─ demo.py
-├─ KetiDBconverter.py
+├─ DBConverter.py
 ├─ README.md
 └─ requirements.txt
 ```
@@ -71,7 +71,7 @@ KetiDBconverter
 ```
 **example command line**
 ```commandline
-python KetiDBconverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
+python DBConverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
 ```
 ### Visualization
 **Arguments**
@@ -85,7 +85,7 @@ python KetiDBconverter.py -i /path/to/KITTI -o /path/to/save -t nuscenes
 python demo.py -i /path/to/KITTI -dt kitti -vt 3d
 ```
 **2d**
-![2d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/58e65e12-cf6d-47e7-8371-bda403174431)
+![2d](https://github.com/dotorl127/DBconverter/assets/35759912/58e65e12-cf6d-47e7-8371-bda403174431)
 **3d**  
 ![3d](https://github.com/dotorl127/KetiDBconverter/assets/35759912/9c34a784-b870-4303-b804-720cd1b0e2cd)
 **project**  

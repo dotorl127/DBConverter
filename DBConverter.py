@@ -11,7 +11,7 @@ class KetiDBconverter(object):
         lst_dir = os.listdir(src_dir)
         if 'image_2' in lst_dir:
             src_db_type = 'kitti'
-        elif 'v1.0-mini' in lst_dir:
+        elif 'samples' in lst_dir:
             src_db_type = 'nuscenes'
         elif 'object-detection-crowdai' in lst_dir:
             src_db_type = 'udacity'
@@ -50,7 +50,7 @@ class KetiDBconverter(object):
 
         self.create_dir()
         self.db = (getattr(__import__(f'converter.{self.src_db_type.lower()}_converter',
-                                      fromlist=["format_converter"]), self.src_db_type)
+                                      fromlist=["converter"]), self.src_db_type)
                    (self.src_path, self.tgt_path, self.tgt_db_type))
 
     def check_db_type(self, db_type: str):

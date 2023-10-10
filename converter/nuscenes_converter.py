@@ -50,7 +50,7 @@ class nuscenes:
         self.lid_rot = lid_rot['nuscenes'][dst_db_type]
         self.lid_rot = check_valid_mat(self.lid_rot)
         self.rt_mat_dict = {}
-        self.nusc = NuScenes(dataroot=self.src_dir)
+        self.nusc = NuScenes(version='v1.0-trainval', dataroot=self.src_dir)
         self.cam_name = ['CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT',
                          'CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT']
         self.lidar_name = ['LIDAR_TOP']
@@ -125,7 +125,7 @@ class nuscenes:
 
     def convert(self):
         print(f'Convert nuscenes to {self.dst_db_type} Dataset.')
-        self.split_logs = create_splits_logs('mini_train', self.nusc)
+        self.split_logs = create_splits_logs('train', self.nusc)
 
         idx = 0
 
@@ -135,7 +135,9 @@ class nuscenes:
         r0_rect = Quaternion(axis=[1, 0, 0], angle=0)  # Dummy values.
         imsize = (1600, 900)
 
-        for sample_token in tqdm(sample_tokens[:100]):
+        for sample_token in tqdm(sample_tokens):
+            flag = False
+
             # Get sample data.
             sample = self.nusc.get('sample', sample_token)
             sample_annotation_tokens = sample['anns']
@@ -151,6 +153,7 @@ class nuscenes:
                 filename_rad_full = sd_record_cam['filename']
 
                 src_rad_path = os.path.join(self.nusc.dataroot, filename_rad_full)
+                if not os.path.exists(src_rad_path): flag = True
                 dst_rad_path = f'{self.dst_dir}radar/{rad_name}/{idx:06d}.pcd'
                 if not os.path.exists(dst_rad_path):
                     assert not dst_rad_path.endswith('.pcd.bin')
@@ -199,6 +202,7 @@ class nuscenes:
 
                 # Convert image (jpg to png).
                 src_im_path = os.path.join(self.nusc.dataroot, filename_cam_full)
+                if not os.path.exists(src_im_path): flag = True
                 dst_im_path = f'{self.dst_dir}camera/{cam_name}/{idx:06d}.png'
                 if not os.path.exists(dst_im_path):
                     im = Image.open(src_im_path)
@@ -237,6 +241,27 @@ class nuscenes:
                         calib_file.write(f'LIDAR_TOP_beam_inclination_max: -1\n')
                         line = ', '.join(map(str, lid_to_ego.reshape(-1).tolist())) + '\n'
                         calib_file.write(f'LIDAR_TOP_extrinsic: {line}')
+
+            filename_lid_full = sd_record_lid['filename']
+
+            # Convert lidar.
+            # Note that we are only using a single sweep, instead of the commonly used n sweeps.
+
+            # Nuscenes lidar fov: -30 ~ 10
+            # Nuscenes channels: 32
+            src_lid_path = os.path.join(self.nusc.dataroot, filename_lid_full)
+            if not os.path.exists(src_lid_path): flag = True
+            else:
+                dst_lid_path = f'{self.dst_dir}lidar/LIDAR_TOP/{idx:06d}.bin'
+                assert not dst_lid_path.endswith('.pcd.bin')
+                pcl = LidarPointCloud.from_file(src_lid_path)
+                if 'like' not in self.dst_db_type:
+                    pcl.rotate(self.lid_rot[:3, :3])  # In KITTI lidar frame.
+                with open(dst_lid_path, "w") as lid_file:
+                    pcl.points.T.tofile(lid_file)
+
+            if flag:
+                continue
 
             for cam_name in self.cam_name:
                 # Write label file.
@@ -349,21 +374,5 @@ class nuscenes:
 
                         # Write to disk.
                         label_file.write(output)
-
-            filename_lid_full = sd_record_lid['filename']
-
-            # Convert lidar.
-            # Note that we are only using a single sweep, instead of the commonly used n sweeps.
-
-            # Nuscenes lidar fov: -30 ~ 10
-            # Nuscenes channels: 32
-            src_lid_path = os.path.join(self.nusc.dataroot, filename_lid_full)
-            dst_lid_path = f'{self.dst_dir}lidar/LIDAR_TOP/{idx:06d}.bin'
-            assert not dst_lid_path.endswith('.pcd.bin')
-            pcl = LidarPointCloud.from_file(src_lid_path)
-            if 'like' not in self.dst_db_type:
-                pcl.rotate(self.lid_rot[:3, :3])  # In KITTI lidar frame.
-            with open(dst_lid_path, "w") as lid_file:
-                pcl.points.T.tofile(lid_file)
 
             idx += 1
